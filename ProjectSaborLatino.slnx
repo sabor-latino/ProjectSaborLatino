@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/backendSL/">
     <Project Path="backendSL/ProjectSaborLatino.csproj" />
+    <Project Path="backendSL.Tests/ProjectSaborLatino.Tests.csproj" />
   </Folder>
   <Folder Name="/dbSL/">
     <File Path="dbSL/README.md" />
