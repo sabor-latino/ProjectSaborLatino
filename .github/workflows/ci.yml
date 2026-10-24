@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (.NET 10 + SQL Server LocalDB)
+    runs-on: windows-2022
+    env:
+      DOTNET_NOLOGO: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Prepare and verify SQL Server LocalDB (MSSQLLocalDB)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          sqllocaldb info
+          $instances = sqllocaldb info
+          if ($instances -notcontains 'MSSQLLocalDB') {
+            sqllocaldb create MSSQLLocalDB
+          }
+          sqllocaldb start MSSQLLocalDB
+          sqllocaldb info MSSQLLocalDB
+          sqlcmd -S "(localdb)\MSSQLLocalDB" -d master -Q "SET NOCOUNT ON; SELECT @@VERSION;"
+          if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible conectar a (localdb)\MSSQLLocalDB con sqlcmd."
+          }
+
+      - name: Restore backend and test projects
+        shell: pwsh
+        run: |
+          dotnet restore backendSL.Tests/ProjectSaborLatino.Tests.csproj
+
+      - name: Audit NuGet packages for known vulnerabilities
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outBackend = dotnet list backendSL/ProjectSaborLatino.csproj package --vulnerable --include-transitive | Out-String
+          Write-Host $outBackend
+          if ($LASTEXITCODE -ne 0 -or $outBackend -match 'has the following vulnerable packages|tiene los siguientes paquetes vulnerables') {
+            throw "Se detectaron paquetes NuGet vulnerables en backendSL/ProjectSaborLatino.csproj."
+          }
+
+          $outTests = dotnet list backendSL.Tests/ProjectSaborLatino.Tests.csproj package --vulnerable --include-transitive | Out-String
+          Write-Host $outTests
+          if ($LASTEXITCODE -ne 0 -or $outTests -match 'has the following vulnerable packages|tiene los siguientes paquetes vulnerables') {
+            throw "Se detectaron paquetes NuGet vulnerables en backendSL.Tests/ProjectSaborLatino.Tests.csproj."
+          }
+
+      - name: Build backend and test projects
+        shell: pwsh
+        run: |
+          dotnet build backendSL/ProjectSaborLatino.csproj --no-restore -warnaserror
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build backendSL.Tests/ProjectSaborLatino.Tests.csproj --no-restore -warnaserror
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run backend integration test suite on isolated temporary databases
+        shell: pwsh
+        run: |
+          dotnet test backendSL.Tests/ProjectSaborLatino.Tests.csproj --no-build --no-restore --verbosity normal
+
+      - name: Verify no temporary databases remain and SaborLatinoDb was not created
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dbs = sqlcmd -S "(localdb)\MSSQLLocalDB" -d master -h -1 -W -Q "SET NOCOUNT ON; SELECT name FROM sys.databases WHERE name LIKE 'SaborLatinoDb%';" | Where-Object { $_.Trim() -ne '' }
+          if ($dbs) {
+            Write-Host "Bases encontradas: $($dbs -join ', ')"
+            throw "Quedaron bases SaborLatinoDb* en la instancia LocalDB de CI: $($dbs -join ', ')"
+          }
+          Write-Host "Verificado: 0 bases SaborLatinoDb* residuales en LocalDB."
+
+  frontend:
+    name: Frontend (Lint, TypeScript + Vite Build & Test Contract)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "frontendSL/package-lock.json"
+
+      - name: Verify frontend packages (npm ci, lint, build and test:ci contract)
+        run: node .github/scripts/verify-frontend-ci.mjs
