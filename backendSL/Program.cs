@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
@@ -89,9 +90,102 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors(PoliticaFrontend);
 app.UseAuthentication();
+
+// Valida en cada petición autenticada que el usuario siga activo en BD, que su SecurityStamp coincida y sincroniza sus roles actuales
+var securityStampClaimType = app.Services
+    .GetRequiredService<Microsoft.Extensions.Options.IOptions<IdentityOptions>>()
+    .Value.ClaimsIdentity.SecurityStampClaimType;
+
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var tokenSecurityStamp = context.User.FindFirstValue(securityStampClaimType);
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(tokenSecurityStamp))
+        {
+            context.User = new ClaimsPrincipal(new ClaimsIdentity());
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+        var estadoActual = await db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new
+            {
+                u.Activo,
+                u.LockoutEnabled,
+                u.LockoutEnd,
+                u.SecurityStamp,
+                Roles = (from ur in db.UserRoles
+                         join r in db.Roles on ur.RoleId equals r.Id
+                         where ur.UserId == u.Id && r.Name != null
+                         select r.Name!).ToList()
+            })
+            .FirstOrDefaultAsync(context.RequestAborted);
+
+        var bloqueado = estadoActual is not null &&
+                        estadoActual.LockoutEnabled &&
+                        estadoActual.LockoutEnd.HasValue &&
+                        estadoActual.LockoutEnd.Value > DateTimeOffset.UtcNow;
+
+        var selloRevocado = estadoActual is null ||
+                            string.IsNullOrEmpty(estadoActual.SecurityStamp) ||
+                            !string.Equals(tokenSecurityStamp, estadoActual.SecurityStamp, StringComparison.Ordinal);
+
+        if (estadoActual is null || !estadoActual.Activo || bloqueado || selloRevocado)
+        {
+            context.User = new ClaimsPrincipal(new ClaimsIdentity());
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        if (context.User.Identity is ClaimsIdentity identity)
+        {
+            foreach (var rolClaim in identity.FindAll(identity.RoleClaimType).ToList())
+            {
+                identity.RemoveClaim(rolClaim);
+            }
+
+            if (identity.RoleClaimType != ClaimTypes.Role)
+            {
+                foreach (var rolClaim in identity.FindAll(ClaimTypes.Role).ToList())
+                {
+                    identity.RemoveClaim(rolClaim);
+                }
+            }
+
+            foreach (var rolActual in estadoActual.Roles)
+            {
+                identity.AddClaim(new Claim(identity.RoleClaimType, rolActual));
+            }
+        }
+    }
+
+    await next(context);
+});
 app.UseAuthorization();
 
-app.MapGroup("/api/identity").MapIdentityApi<ApplicationUser>();
+// Cierra /api/identity/register para que el registro público pase solo por POST /api/cuenta/registro (rol Cliente)
+app.MapGroup("/api/identity")
+    .MapIdentityApi<ApplicationUser>()
+    .Add(endpointBuilder =>
+    {
+        if (endpointBuilder is RouteEndpointBuilder routeEndpoint &&
+            routeEndpoint.RoutePattern.RawText?.TrimEnd('/').EndsWith("/register", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            routeEndpoint.Metadata.Add(new ExcludeFromDescriptionAttribute());
+            routeEndpoint.RequestDelegate = static context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return Task.CompletedTask;
+            };
+        }
+    });
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

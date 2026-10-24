@@ -24,7 +24,8 @@ public class CotizacionService : ICotizacionService
     // Devuelve null si la solicitud no existe (→ 404)
     public async Task<CotizacionDto?> CrearAsync(int solicitudId, CotizacionCrearDto dto, string creadaPorUsuarioId)
     {
-        var solicitud = await _db.Solicitudes.FindAsync(solicitudId);
+        await using var transaccion = await _db.Database.BeginTransactionAsync();
+        var solicitud = await BloquearSolicitudAsync(solicitudId);
         if (solicitud is null)
         {
             return null;
@@ -59,6 +60,7 @@ public class CotizacionService : ICotizacionService
         _db.Cotizaciones.Add(cotizacion);
         solicitud.Estado = EstadoSolicitud.Cotizada;
         await _db.SaveChangesAsync();
+        await transaccion.CommitAsync();
 
         return ADto(cotizacion);
     }
@@ -66,10 +68,24 @@ public class CotizacionService : ICotizacionService
     // Aceptar = "contrato": esta queda Aceptada, las otras enviadas se rechazan y la solicitud pasa a Aceptada
     public async Task<CotizacionDto?> AceptarAsync(int id)
     {
+        var solicitudId = await _db.Cotizaciones.AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => (int?)c.SolicitudId)
+            .SingleOrDefaultAsync();
+        if (solicitudId is null)
+        {
+            return null;
+        }
+
+        await using var transaccion = await _db.Database.BeginTransactionAsync();
+        var solicitud = await BloquearSolicitudAsync(solicitudId.Value);
+        if (solicitud is null)
+        {
+            return null;
+        }
+
         var cotizacion = await _db.Cotizaciones
-            .Include(c => c.Solicitud)
-                .ThenInclude(s => s!.Cotizaciones)
-            .FirstOrDefaultAsync(c => c.Id == id);
+            .SingleOrDefaultAsync(c => c.Id == id && c.SolicitudId == solicitudId.Value);
         if (cotizacion is null)
         {
             return null;
@@ -82,13 +98,14 @@ public class CotizacionService : ICotizacionService
 
         if (cotizacion.VigenteHasta < DateTime.Now)
         {
-            // Se guarda como Vencida antes de avisar del error
+            // Contrato existente: responder 400, pero persistir Vencida. La bitácora
+            // participa en esta transacción y debe guardarse antes del commit.
             cotizacion.Estado = EstadoCotizacion.Vencida;
             await _db.SaveChangesAsync();
+            await transaccion.CommitAsync();
             throw new DatosInvalidosException("La cotización está vencida y no se puede aceptar.");
         }
 
-        var solicitud = cotizacion.Solicitud!;
         if (solicitud.Estado is EstadoSolicitud.Aceptada or EstadoSolicitud.Rechazada or EstadoSolicitud.Cancelada)
         {
             throw new DatosInvalidosException($"La solicitud está {solicitud.Estado} y ya no se puede aceptar.");
@@ -96,13 +113,17 @@ public class CotizacionService : ICotizacionService
 
         cotizacion.Estado = EstadoCotizacion.Aceptada;
 
-        foreach (var otra in solicitud.Cotizaciones.Where(c => c.Id != id && c.Estado == EstadoCotizacion.Enviada))
+        var otras = await _db.Cotizaciones
+            .Where(c => c.SolicitudId == solicitudId.Value && c.Id != id && c.Estado == EstadoCotizacion.Enviada)
+            .ToListAsync();
+        foreach (var otra in otras)
         {
             otra.Estado = EstadoCotizacion.Rechazada;
         }
 
         solicitud.Estado = EstadoSolicitud.Aceptada;
         await _db.SaveChangesAsync();
+        await transaccion.CommitAsync();
 
         return ADto(cotizacion);
     }
@@ -110,12 +131,27 @@ public class CotizacionService : ICotizacionService
     // Si soloDelClienteId trae valor, la solicitud tiene que ser de ese cliente (si no, null → 404)
     public async Task<CotizacionDto?> RechazarAsync(int id, string? soloDelClienteId)
     {
-        var cotizacion = await _db.Cotizaciones
-            .Include(c => c.Solicitud)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        var solicitudId = await _db.Cotizaciones.AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => (int?)c.SolicitudId)
+            .SingleOrDefaultAsync();
+        if (solicitudId is null)
+        {
+            return null;
+        }
 
-        if (cotizacion is null ||
-            (soloDelClienteId is not null && cotizacion.Solicitud!.ClienteUsuarioId != soloDelClienteId))
+        await using var transaccion = await _db.Database.BeginTransactionAsync();
+        var solicitud = await BloquearSolicitudAsync(solicitudId.Value);
+        if (solicitud is null ||
+            (soloDelClienteId is not null && solicitud.ClienteUsuarioId != soloDelClienteId))
+        {
+            return null;
+        }
+
+        var cotizacion = await _db.Cotizaciones
+            .SingleOrDefaultAsync(c => c.Id == id && c.SolicitudId == solicitudId.Value);
+
+        if (cotizacion is null)
         {
             return null;
         }
@@ -127,8 +163,33 @@ public class CotizacionService : ICotizacionService
 
         cotizacion.Estado = EstadoCotizacion.Rechazada;
         await _db.SaveChangesAsync();
+        await transaccion.CommitAsync();
 
         return ADto(cotizacion);
+    }
+
+    // Todas las mutaciones de cotizaciones toman primero el mismo bloqueo por solicitud.
+    // AsNoTracking evita reutilizar una entidad precargada antes de adquirirlo.
+    private async Task<Solicitud?> BloquearSolicitudAsync(int solicitudId)
+    {
+        var solicitud = await _db.Solicitudes
+            .FromSqlInterpolated($"SELECT * FROM [Solicitudes] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {solicitudId}")
+            .AsNoTracking()
+            .SingleOrDefaultAsync();
+        if (solicitud is null) return null;
+
+        // Descartar solo copias anteriores de esta solicitud. Otros cambios pendientes
+        // del mismo DbContext pertenecen a su consumidor y deben conservarse.
+        foreach (var anterior in _db.Cotizaciones.Local.Where(c => c.SolicitudId == solicitudId).ToList())
+        {
+            _db.Entry(anterior).State = EntityState.Detached;
+        }
+        foreach (var anterior in _db.Solicitudes.Local.Where(s => s.Id == solicitudId).ToList())
+        {
+            _db.Entry(anterior).State = EntityState.Detached;
+        }
+        _db.Solicitudes.Attach(solicitud);
+        return solicitud;
     }
 
     // Público y estático para que SolicitudService también lo use

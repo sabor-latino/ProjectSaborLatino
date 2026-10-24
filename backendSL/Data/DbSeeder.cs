@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Models;
 
@@ -122,36 +122,56 @@ public static class DbSeeder
         };
 
         var parlante = new Equipo { Nombre = "Parlante activo", Tipo = "Audio", CantidadTotal = 6 };
+        var subbajo = new Equipo { Nombre = "Subbajo", Tipo = "Audio", CantidadTotal = 4 };
         var microfono = new Equipo { Nombre = "Micrófono inalámbrico", Tipo = "Audio", CantidadTotal = 8 };
         var consola = new Equipo { Nombre = "Consola de sonido", Tipo = "Audio", CantidadTotal = 2 };
-        var monitor = new Equipo { Nombre = "Monitor de escenario", Tipo = "Audio", CantidadTotal = 4 };
+        var monitorInEar = new Equipo { Nombre = "Monitor in-ear inalámbrico", Tipo = "Audio", CantidadTotal = 6 };
         var pantalla = new Equipo { Nombre = "Pantalla para karaoke", Tipo = "Video", CantidadTotal = 2 };
         var luces = new Equipo { Nombre = "Luces de ambiente", Tipo = "Iluminación", CantidadTotal = 8 };
+        var maquinaHumo = new Equipo { Nombre = "Máquina de humo", Tipo = "Iluminación", CantidadTotal = 2 };
 
         db.Paquetes.AddRange(
             new Paquete
             {
                 Servicio = karaoke,
-                Nombre = "Karaoke bailable",
-                Descripcion = "Karaoke con pantalla y música bailable entre canciones.",
-                PrecioBase = 120000m,
+                Nombre = "DJ Open Format",
+                Descripcion = "Precio base. Animación profesional con DJ Open Format, sonido estándar con dos subbajos y dos medios, dos micrófonos inalámbricos, una pantalla e iluminación completa de escenario. El servicio de karaoke se puede incluir como un extra.",
+                PrecioBase = 80000m,
                 Equipos =
                 [
                     new PaqueteEquipo { Equipo = parlante, Cantidad = 2 },
+                    new PaqueteEquipo { Equipo = subbajo, Cantidad = 2 },
                     new PaqueteEquipo { Equipo = microfono, Cantidad = 2 },
                     new PaqueteEquipo { Equipo = pantalla, Cantidad = 1 },
-                    new PaqueteEquipo { Equipo = luces, Cantidad = 2 }
+                    new PaqueteEquipo { Equipo = luces, Cantidad = 4 }
+                ]
+            },
+            new Paquete
+            {
+                Servicio = sonido,
+                Nombre = "Sonorización para grupos o DJs",
+                Descripcion = "Precio base. Servicio profesional de sonorización para grupos musicales o DJs con cobertura hasta para 500 personas. Incluye consola de sonido, monitoreo in-ear inalámbrico, iluminación completa de escenario, máquina de humo y técnico especializado de audio e iluminación.",
+                PrecioBase = 60000m,
+                Equipos =
+                [
+                    new PaqueteEquipo { Equipo = parlante, Cantidad = 4 },
+                    new PaqueteEquipo { Equipo = subbajo, Cantidad = 2 },
+                    new PaqueteEquipo { Equipo = consola, Cantidad = 1 },
+                    new PaqueteEquipo { Equipo = monitorInEar, Cantidad = 4 },
+                    new PaqueteEquipo { Equipo = luces, Cantidad = 4 },
+                    new PaqueteEquipo { Equipo = maquinaHumo, Cantidad = 1 }
                 ]
             },
             new Paquete
             {
                 Servicio = musicaEnVivo,
-                Nombre = "Grupo secuenciado",
-                Descripcion = "Grupo que canta en vivo sobre pistas secuenciadas.",
-                PrecioBase = 250000m,
+                Nombre = "Grupo secuenciado Villa Guanacaste",
+                Descripcion = "Precio base. Presentación musical en vivo del grupo secuenciado Villa Guanacaste, con sistema de sonido adaptativo según el recinto e iluminación profesional completa de escenario.",
+                PrecioBase = 170000m,
                 Equipos =
                 [
                     new PaqueteEquipo { Equipo = parlante, Cantidad = 2 },
+                    new PaqueteEquipo { Equipo = subbajo, Cantidad = 2 },
                     new PaqueteEquipo { Equipo = microfono, Cantidad = 3 },
                     new PaqueteEquipo { Equipo = consola, Cantidad = 1 },
                     new PaqueteEquipo { Equipo = luces, Cantidad = 4 }
@@ -160,33 +180,23 @@ public static class DbSeeder
             new Paquete
             {
                 Servicio = musicaEnVivo,
-                Nombre = "Grupo en vivo (marimba u orquesta)",
-                Descripcion = "Marimba u orquesta completa tocando en vivo.",
-                PrecioBase = 450000m,
+                Nombre = "Marimba Orquesta Son del Gallo (en vivo)",
+                Descripcion = "Precio base. Espectáculo musical en vivo con la Marimba Orquesta Son del Gallo (de 6 a 8 músicos en escena). Incluye todo el paquete integral de sonido, monitoreo in-ear inalámbrico, iluminación completa de escenario, máquina de humo, pantalla y soporte técnico completo.",
+                PrecioBase = 300000m,
                 Equipos =
                 [
                     new PaqueteEquipo { Equipo = parlante, Cantidad = 4 },
+                    new PaqueteEquipo { Equipo = subbajo, Cantidad = 2 },
                     new PaqueteEquipo { Equipo = microfono, Cantidad = 6 },
                     new PaqueteEquipo { Equipo = consola, Cantidad = 1 },
-                    new PaqueteEquipo { Equipo = monitor, Cantidad = 2 },
-                    new PaqueteEquipo { Equipo = luces, Cantidad = 6 }
-                ]
-            },
-            new Paquete
-            {
-                Servicio = sonido,
-                Nombre = "Sonorización para grupos en vivo",
-                Descripcion = "Equipo de sonido y técnico para el grupo que usted contrate.",
-                PrecioBase = 180000m,
-                Equipos =
-                [
-                    new PaqueteEquipo { Equipo = parlante, Cantidad = 4 },
-                    new PaqueteEquipo { Equipo = consola, Cantidad = 1 },
-                    new PaqueteEquipo { Equipo = monitor, Cantidad = 4 }
+                    new PaqueteEquipo { Equipo = monitorInEar, Cantidad = 4 },
+                    new PaqueteEquipo { Equipo = pantalla, Cantidad = 1 },
+                    new PaqueteEquipo { Equipo = luces, Cantidad = 6 },
+                    new PaqueteEquipo { Equipo = maquinaHumo, Cantidad = 1 }
                 ]
             });
 
         await db.SaveChangesAsync();
-        logger.LogInformation("Catálogo inicial creado: 3 servicios, 6 equipos y 4 paquetes.");
+        logger.LogInformation("Catálogo inicial creado: 3 servicios, 8 equipos y 4 paquetes.");
     }
 }

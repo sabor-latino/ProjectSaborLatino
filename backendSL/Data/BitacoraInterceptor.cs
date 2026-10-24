@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
 using ProjectSaborLatino.Models;
 
 namespace ProjectSaborLatino.Data;
@@ -15,6 +16,9 @@ public class BitacoraInterceptor : SaveChangesInterceptor
 
     // Cambios anotados antes de guardar, pendientes de escribir
     private readonly List<CambioPendiente> _pendientes = [];
+    private IDbContextTransaction? _transaction;
+    private IDbContextTransaction? _externalTransaction;
+    private bool _writingAudit;
 
     public BitacoraInterceptor(IHttpContextAccessor httpContextAccessor)
     {
@@ -23,22 +27,60 @@ public class BitacoraInterceptor : SaveChangesInterceptor
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        Anotar(eventData.Context);
+        if (!_writingAudit)
+        {
+            Anotar(eventData.Context);
+            if (_pendientes.Count > 0)
+            {
+                _externalTransaction = eventData.Context!.Database.CurrentTransaction;
+                if (_externalTransaction is null) _transaction = eventData.Context.Database.BeginTransaction();
+            }
+        }
         return base.SavingChanges(eventData, result);
     }
 
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-        Anotar(eventData.Context);
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        if (!_writingAudit)
+        {
+            Anotar(eventData.Context);
+            if (_pendientes.Count > 0)
+            {
+                _externalTransaction = eventData.Context!.Database.CurrentTransaction;
+                if (_externalTransaction is null) _transaction = await eventData.Context.Database.BeginTransactionAsync(cancellationToken);
+            }
+        }
+        return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
-        if (EscribirPendientes(eventData.Context))
+        if (_pendientes.Count > 0)
         {
-            eventData.Context!.SaveChanges();
+            try
+            {
+                EscribirPendientes(eventData.Context);
+                _writingAudit = true;
+                eventData.Context!.SaveChanges();
+                _transaction?.Commit();
+            }
+            catch
+            {
+                _transaction?.Rollback();
+                // Con MARS activo no hay savepoints fiables: se revierte toda
+                // la transacción ajena para impedir que el llamador confirme negocio sin auditoría.
+                _externalTransaction?.Rollback();
+                throw;
+            }
+            finally
+            {
+                _writingAudit = false;
+                _transaction?.Dispose();
+                _transaction = null;
+                _externalTransaction = null;
+                _pendientes.Clear();
+            }
         }
 
         return base.SavedChanges(eventData, result);
@@ -47,9 +89,29 @@ public class BitacoraInterceptor : SaveChangesInterceptor
     public override async ValueTask<int> SavedChangesAsync(
         SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
     {
-        if (EscribirPendientes(eventData.Context))
+        if (_pendientes.Count > 0)
         {
-            await eventData.Context!.SaveChangesAsync(cancellationToken);
+            try
+            {
+                EscribirPendientes(eventData.Context);
+                _writingAudit = true;
+                await eventData.Context!.SaveChangesAsync(cancellationToken);
+                if (_transaction is not null) await _transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                if (_transaction is not null) await _transaction.RollbackAsync();
+                if (_externalTransaction is not null) await _externalTransaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                _writingAudit = false;
+                if (_transaction is not null) await _transaction.DisposeAsync();
+                _transaction = null;
+                _externalTransaction = null;
+                _pendientes.Clear();
+            }
         }
 
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
@@ -59,13 +121,32 @@ public class BitacoraInterceptor : SaveChangesInterceptor
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
         _pendientes.Clear();
+        if (!_writingAudit)
+        {
+            _transaction?.Rollback();
+            _externalTransaction?.Rollback();
+            _transaction?.Dispose();
+            _transaction = null;
+            _externalTransaction = null;
+        }
         base.SaveChangesFailed(eventData);
     }
 
-    public override Task SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken = default)
+    public override async Task SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken = default)
     {
         _pendientes.Clear();
-        return base.SaveChangesFailedAsync(eventData, cancellationToken);
+        if (!_writingAudit)
+        {
+            if (_transaction is not null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+            }
+            if (_externalTransaction is not null) await _externalTransaction.RollbackAsync();
+            _transaction = null;
+            _externalTransaction = null;
+        }
+        await base.SaveChangesFailedAsync(eventData, cancellationToken);
     }
 
     private void Anotar(DbContext? context)
