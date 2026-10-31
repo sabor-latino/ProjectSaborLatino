@@ -97,4 +97,121 @@ export interface Solicitud {
   lugar: string;
   estado: string;
   fechaCreacion: string;
+  clienteUsuarioId?: string | null;
+  telefonoContacto?: string | null;
+  cantidadInvitados?: number | null;
+  comentarios?: string | null;
+  cotizaciones?: Cotizacion[];
+}
+
+export interface Cotizacion {
+  id: number;
+  solicitudId: number;
+  monto: number;
+  descuento: number;
+  total: number;
+  detalle: string | null;
+  vigenteHasta: string;
+  estado: string;
+  fechaCreacion: string;
+}
+
+export interface Fidelidad {
+  solicitudId: number;
+  eventosFinalizados: number;
+  eventosMinimos: number;
+  porcentajeDescuento: number;
+  aplica: boolean;
+  precioBase: number | null;
+  descuentoSugerido: number | null;
+}
+
+// =============== Eventos ===============
+
+export interface Equipo {
+  id: number;
+  nombre: string;
+  tipo: string | null;
+  cantidadTotal: number;
+  activo: boolean;
+}
+
+export interface Empleado {
+  id: number;
+  cedula: string;
+  nombreCompleto: string;
+  puesto: string;
+  telefono: string | null;
+  activo: boolean;
+  usuarioId: string | null;
+}
+
+export interface Evento {
+  id: number;
+  cotizacionId: number;
+  solicitudId: number;
+  nombreContacto: string;
+  paqueteId: number | null;
+  paqueteNombre: string | null;
+  fechaInicio: string;
+  fechaFin: string;
+  lugar: string;
+  estado: string;
+  motivoCancelacion: string | null;
+  notas: string | null;
+  fechaCreacion: string;
+  equipos: { equipoId: number; equipoNombre: string; cantidad: number }[];
+  trabajadores: { empleadoId: number; empleadoNombre: string; puesto: string; funcion: string | null }[];
+  historial: { estadoAnterior: string | null; estadoNuevo: string; fecha: string; comentario: string | null }[];
+}
+
+export interface Disponibilidad {
+  equipoId: number;
+  nombre: string;
+  cantidadTotal: number;
+  reservada: number;
+  disponible: number;
+}
+
+// =============== Sistema ===============
+
+export interface Usuario {
+  id: string;
+  email: string;
+  nombreCompleto: string;
+  telefono: string | null;
+  rol: Rol;
+  activo: boolean;
+  fechaRegistro: string;
+}
+
+export interface Configuracion {
+  clave: string;
+  valor: string;
+  descripcion: string | null;
+}
+
+export interface RegistroBitacora {
+  id: number;
+  usuarioId: string | null;
+  accion: string;
+  entidad: string;
+  entidadId: string | null;
+  detalle: string | null;
+  fecha: string;
+}
+
+export interface Conteo {
+  nombre: string;
+  cantidad: number;
+}
+
+export interface Resumen {
+  anio: number;
+  mes: number;
+  eventosPorEstado: Conteo[];
+  ingresos: number;
+  topPaquetes: Conteo[];
+  topClientes: { clienteUsuarioId: string; nombreCompleto: string; email: string; eventosFinalizados: number }[];
+  solicitudesPendientes: number;
 }

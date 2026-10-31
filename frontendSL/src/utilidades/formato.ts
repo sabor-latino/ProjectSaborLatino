@@ -31,3 +31,8 @@ export function ahoraParaInput(): string {
   ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
   return ahora.toISOString().slice(0, 16);
 }
+
+// "2027-03-15T18:00:00" → "2027-03-15T18:00" (valor para <input type="datetime-local">)
+export function paraInputFecha(valor: string): string {
+  return valor.slice(0, 16);
+}

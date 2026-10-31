@@ -11,7 +11,8 @@ const ENLACES = [
 
 // Estructura común de todas las páginas: barra de navegación, contenido y pie
 export function Layout() {
-  const { perfil, cerrarSesion } = useAuth();
+  const { perfil, cerrarSesion, tieneRol } = useAuth();
+  const esAdmin = tieneRol('Administrador', 'Superadministrador');
   const navegar = useNavigate();
   const { pathname } = useLocation();
   const botonMenu = useRef<HTMLButtonElement>(null);
@@ -98,6 +99,11 @@ export function Layout() {
             <div className="menu__cuenta">
               {perfil ? (
                 <>
+                  {esAdmin && (
+                    <NavLink to="/panel" className="menu__enlace" onClick={cerrarMenu}>
+                      Panel
+                    </NavLink>
+                  )}
                   <NavLink to="/mi-cuenta" className="menu__enlace" onClick={cerrarMenu}>
                     {perfil.nombreCompleto.split(' ')[0]}
                   </NavLink>

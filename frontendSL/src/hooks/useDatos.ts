@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api, ErrorApi } from '../api/cliente';
 
 interface Estado<T> {
@@ -9,8 +9,10 @@ interface Estado<T> {
 
 // Pide datos a la API con GET y avisa si está cargando o si hubo error.
 // Si la ruta cambia (por ejemplo, un filtro), vuelve a pedir.
+// recargar() vuelve a pedir la misma ruta sin borrar lo que ya se ve (útil después de guardar).
 export function useDatos<T>(ruta: string) {
   const [estado, setEstado] = useState<Estado<T>>({ ruta: '', datos: null, error: null });
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let vigente = true;
@@ -29,7 +31,9 @@ export function useDatos<T>(ruta: string) {
     return () => {
       vigente = false;
     };
-  }, [ruta]);
+  }, [ruta, version]);
+
+  const recargar = useCallback(() => setVersion((v) => v + 1), []);
 
   // Está cargando mientras la respuesta guardada no sea de la ruta actual
   const cargando = estado.ruta !== ruta;
@@ -38,5 +42,6 @@ export function useDatos<T>(ruta: string) {
     datos: cargando ? null : estado.datos,
     error: cargando ? null : estado.error,
     cargando,
+    recargar,
   };
 }

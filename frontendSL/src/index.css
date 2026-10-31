@@ -1341,3 +1341,803 @@ a.servicio:hover {
 .paquetes--tres {
   grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 }
+
+/* =========================================================
+   F2 · Paneles por rol (administrador, cliente y trabajador)
+   La misma idea-fuerza, pero con la luz encendida: superficies claras,
+   ciruela para ubicarse y coral solo en la acción principal de cada pantalla.
+   ========================================================= */
+
+.texto-suave {
+  color: var(--texto-suave);
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+.subtitulo {
+  margin-bottom: var(--esp-2);
+  font: 800 1.15rem/1.2 var(--f-titulo);
+}
+
+/* ---------- Botones extra ---------- */
+
+.boton--mini {
+  min-height: 36px;
+  padding-inline: 0.85rem;
+  font-size: 0.88rem;
+}
+
+.boton--texto {
+  border-color: transparent;
+  background: transparent;
+  color: var(--texto-suave);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.boton--texto:hover {
+  color: var(--error);
+}
+
+.boton--peligro {
+  background: var(--error);
+  color: #fff;
+}
+
+.boton--peligro:hover {
+  filter: brightness(1.1);
+}
+
+.boton-enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.acciones--chicas {
+  gap: var(--esp-2);
+  align-items: center;
+}
+
+/* ---------- Estructura del panel ---------- */
+
+.panel {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: var(--esp-5);
+  align-items: start;
+  padding-block: var(--esp-5) var(--seccion);
+}
+
+.panel__lado {
+  position: sticky;
+  top: calc(var(--alto-barra) + var(--esp-3));
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--superficie);
+}
+
+.panel__quien {
+  display: grid;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.panel__quien .texto-suave {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panel__menu {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel__enlace {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radio-sm);
+  color: var(--texto);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.panel__enlace:hover {
+  background: var(--superficie-2);
+}
+
+.panel__enlace[aria-current='page'] {
+  background: var(--marca);
+  color: var(--fondo);
+}
+
+.panel__contenido {
+  display: grid;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.panel__contenido > section {
+  display: grid;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+.panel__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.panel__titulo h1 {
+  font: 800 clamp(1.7rem, 3vw, 2.3rem)/1.1 var(--f-titulo);
+  color: var(--marca);
+}
+
+.panel .filtros {
+  margin-bottom: 0;
+}
+
+@media (max-width: 860px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--esp-4);
+    padding-top: var(--esp-4);
+  }
+
+  .panel__lado {
+    position: static;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    padding: var(--esp-3);
+  }
+
+  .panel__quien {
+    display: none;
+  }
+
+  /* En celular el menú del panel es una fila que se desliza */
+  .panel__menu {
+    display: flex;
+    gap: var(--esp-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .panel__enlace {
+    white-space: nowrap;
+  }
+}
+
+/* ---------- Cifras del resumen ---------- */
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: var(--esp-3);
+}
+
+.cifra {
+  display: grid;
+  gap: 0.2rem;
+  padding: var(--esp-4);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.cifra:first-child {
+  border-color: transparent;
+  background: var(--marca);
+  color: var(--fondo);
+}
+
+.cifra:first-child .cifra__etiqueta,
+.cifra:first-child .cifra__nota {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.cifra__etiqueta {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cifra__valor {
+  font: 800 clamp(1.8rem, 4vw, 2.4rem)/1.1 var(--f-titulo);
+  font-variant-numeric: tabular-nums;
+}
+
+.cifra__nota {
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.rejilla-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: var(--esp-3);
+}
+
+.caja {
+  display: grid;
+  gap: var(--esp-3);
+  align-content: start;
+  padding: var(--esp-4);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--superficie);
+}
+
+.caja--destacada {
+  border-color: transparent;
+  background: var(--superficie-2);
+}
+
+.caja--fidelidad {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--marca), #4a1230);
+  color: #fff;
+}
+
+.caja .formulario-panel {
+  padding: 0;
+}
+
+.barras {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barras li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.barras__nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barras__pista {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--superficie-2);
+}
+
+.barras__relleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accion);
+}
+
+/* ---------- Tablas (en celular cada fila se vuelve tarjeta) ---------- */
+
+.tabla-envoltura {
+  overflow-x: auto;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--superficie);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.tabla th {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--linea);
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: middle;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabla tbody tr:hover {
+  background: var(--fondo);
+}
+
+.tabla--compacta td,
+.tabla--compacta th {
+  padding: 0.55rem 0.75rem;
+}
+
+.tabla__inactiva td {
+  color: var(--texto-suave);
+}
+
+.tabla__acciones {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.miniatura {
+  width: 96px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--superficie-2);
+}
+
+@media (max-width: 720px) {
+  .tabla-envoltura {
+    border: 0;
+    background: none;
+  }
+
+  .tabla thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .tabla,
+  .tabla tbody,
+  .tabla tr,
+  .tabla td {
+    display: block;
+  }
+
+  .tabla tr {
+    margin-bottom: var(--esp-3);
+    padding: var(--esp-2) 0;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    background: var(--superficie);
+  }
+
+  .tabla td {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--esp-3);
+    padding: 0.45rem 1rem;
+    border: 0;
+    text-align: right;
+  }
+
+  .tabla td[data-etiqueta]::before {
+    content: attr(data-etiqueta);
+    color: var(--texto-suave);
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .tabla__acciones {
+    justify-content: flex-end !important;
+  }
+}
+
+/* ---------- Insignias de estado ---------- */
+
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.insignia::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.insignia--ok {
+  background: var(--exito-fondo);
+  color: var(--exito);
+}
+
+.insignia--alerta {
+  background: rgb(255 107 61 / 0.15);
+  color: #b2401a;
+}
+
+.insignia--info {
+  background: rgb(122 30 72 / 0.1);
+  color: var(--marca);
+}
+
+.insignia--apagado {
+  background: var(--superficie-2);
+  color: var(--texto-suave);
+}
+
+@media (prefers-color-scheme: dark) {
+  .insignia--alerta {
+    color: #ffb199;
+  }
+
+  .insignia--info {
+    background: rgb(255 156 198 / 0.14);
+  }
+
+  .caja--fidelidad {
+    background: linear-gradient(135deg, #5a1838, #2a0f1f);
+  }
+
+  .cifra:first-child {
+    color: #1a1420;
+  }
+}
+
+/* ---------- Tarjetas desplegables (solicitudes y eventos) ---------- */
+
+.lista-tarjetas {
+  display: grid;
+  gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta-panel {
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+.tarjeta-panel__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--esp-3) var(--esp-4);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tarjeta-panel__cabeza > span:first-child {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tarjeta-panel__cabeza:hover {
+  background: var(--fondo);
+}
+
+.tarjeta-panel__cabeza[aria-expanded='true'] {
+  border-bottom: 1px solid var(--linea);
+}
+
+.tarjeta-panel__cuerpo {
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.4rem var(--esp-4);
+  margin: 0;
+}
+
+.ficha dt {
+  color: var(--texto-suave);
+  font-weight: 700;
+}
+
+.ficha dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .ficha {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+
+  .ficha dd {
+    margin-bottom: var(--esp-2);
+  }
+}
+
+.ficha-evento {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.ficha-evento__columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--esp-3);
+}
+
+.lista-simple {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista-simple > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radio-sm);
+  background: var(--fondo);
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etiquetas li {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.linea-tiempo {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--linea);
+  list-style: none;
+}
+
+.linea-tiempo li {
+  position: relative;
+}
+
+.linea-tiempo li::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.2rem - 6px);
+  top: 0.45em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--marca);
+}
+
+/* ---------- Cotizaciones en Mi cuenta ---------- */
+
+.cotizacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2);
+  padding: var(--esp-3);
+  border-radius: var(--radio-sm);
+  background: var(--fondo);
+}
+
+.cotizacion__total {
+  font: 800 1.4rem var(--f-titulo);
+}
+
+.cotizacion__nota {
+  flex-basis: 100%;
+  color: var(--marca);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.total {
+  font-size: 1.05rem;
+}
+
+/* ---------- Mi cuenta en dos columnas ---------- */
+
+.cuenta {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: var(--esp-4);
+  align-items: start;
+}
+
+.cuenta .perfil {
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.cuenta__contenido {
+  display: grid;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.pasados summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.pasados .lista-simple {
+  margin-top: var(--esp-2);
+}
+
+@media (max-width: 860px) {
+  .cuenta {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Ventanas de formulario ---------- */
+
+.dialogo {
+  width: min(560px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  box-shadow: var(--sombra-alta);
+}
+
+.dialogo::backdrop {
+  background: rgb(18 14 22 / 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.dialogo__encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: 1px solid var(--linea);
+  background: var(--superficie);
+}
+
+.dialogo__encabezado h2 {
+  font: 800 1.3rem var(--f-titulo);
+}
+
+.dialogo__cerrar {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--superficie-2);
+  color: var(--texto);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.formulario-panel {
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+}
+
+.formulario-panel > .boton {
+  justify-self: start;
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.casilla input {
+  width: 1.25rem;
+  min-height: 0;
+  height: 1.25rem;
+  accent-color: var(--marca);
+}
+
+.grupo-campos {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: var(--esp-3);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-sm);
+}
+
+.grupo-campos legend {
+  padding-inline: 0.3rem;
+  font-weight: 800;
+}
+
+.grupo-campos > .boton {
+  justify-self: start;
+}
+
+.fila-equipo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px auto;
+  gap: var(--esp-2);
+  align-items: center;
+}
+
+.entrada-corta {
+  width: 90px;
+}
+
+.entrada-media {
+  width: auto;
+  min-width: 12rem;
+  max-width: 100%;
+}
+
+.lista-simple .entrada-media {
+  flex: 1 1 12rem;
+}
+
+/* En la columna angosta de Mi cuenta, cada dato va debajo de su etiqueta */
+.cuenta .perfil__datos {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.cuenta .perfil__datos dd {
+  margin-bottom: var(--esp-2);
+  overflow-wrap: anywhere;
+}
