@@ -32,7 +32,7 @@ export function Inicio() {
             Que su fiesta <em>suene en vivo</em>
           </h1>
           <p className="portada__texto">
-            Karaoke, marimba, orquesta y sonido profesional en todo el Valle Central. Usted elige el paquete; nosotros
+            Karaoke, marimba, orquesta y sonido profesional en todo el país. Usted elige el paquete; nosotros
             llevamos la música, el equipo y la gente que lo hace sonar.
           </p>
           <div className="acciones">

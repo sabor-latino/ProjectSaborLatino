@@ -382,6 +382,14 @@ a {
   white-space: nowrap;
 }
 
+.marca__logo {
+  width: 2.9rem;
+  height: 3.6rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.35));
+}
+
 .marca__nota {
   display: grid;
   place-items: center;

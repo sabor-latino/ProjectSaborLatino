@@ -65,9 +65,7 @@ export function Layout() {
       <header className={clasesBarra}>
         <div className="contenedor barra__interior">
           <Link to="/" className="marca" translate="no" onClick={cerrarMenu}>
-            <span className="marca__nota" aria-hidden="true">
-              ♪
-            </span>
+            <img src="/logo.png" alt="" className="marca__logo" width={46} height={58} />
             Sabor Latino
           </Link>
 
@@ -133,9 +131,7 @@ export function Layout() {
           <div className="pie__grid">
             <div className="encabezado encabezado--sin-margen">
               <Link to="/" className="marca" translate="no">
-                <span className="marca__nota" aria-hidden="true">
-                  ♪
-                </span>
+                <img src="/logo.png" alt="" className="marca__logo" width={46} height={58} />
                 Sabor Latino
               </Link>
               <p>Karaoke, música en vivo y sonido para sus eventos en Costa Rica.</p>
