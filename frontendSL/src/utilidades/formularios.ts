@@ -6,7 +6,7 @@ type Control = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 // sale de él o cuando el navegador lo rechaza al enviar. Va junto con aria-errormessage.
 function marcar(e: FocusEvent<Control> | FormEvent<Control>) {
   const campo = e.currentTarget;
-  if (campo.checkValidity()) {
+  if (campo.validity.valid) {
     campo.removeAttribute('aria-invalid');
   } else {
     campo.setAttribute('aria-invalid', 'true');
