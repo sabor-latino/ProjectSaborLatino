@@ -23,7 +23,12 @@ export function Solicitudes() {
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
 
   // Acciones de un clic (aceptar, rechazar, cancelar) con confirmación
-  const ejecutar = async (pregunta: string, llamada: () => Promise<unknown>, exito: string) => {
+  const ejecutar = async (
+    pregunta: string,
+    llamada: () => Promise<unknown>,
+    exito: string,
+    recargarSiFalla = false,
+  ) => {
     if (!window.confirm(pregunta)) return;
     try {
       await llamada();
@@ -31,6 +36,9 @@ export function Solicitudes() {
       recargar();
     } catch (e) {
       setAviso({ tipo: 'error', texto: e instanceof Error ? e.message : 'No se pudo completar la acción.' });
+      // Al aceptar una cotización vencida, el backend persiste el estado "Vencida"
+      // aunque responda 400; recargar para reflejar ese cambio en pantalla.
+      if (recargarSiFalla) recargar();
     }
   };
 
@@ -132,6 +140,7 @@ export function Solicitudes() {
                                     'El cliente confirmó esta cotización. ¿Marcarla como aceptada?',
                                     () => api.patch(`/api/cotizaciones/${c.id}/aceptar`),
                                     'Cotización aceptada. Ya puede crear el evento.',
+                                    true,
                                   )
                                 }
                               >
@@ -284,7 +293,7 @@ function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTe
       <div className="fila">
         <div className="campo">
           <label htmlFor="c-monto">Monto (₡) *</label>
-          <input id="c-monto" name="monto" type="number" min={1} step="1000" required value={monto} onChange={(e) => setMonto(e.target.value)} />
+          <input id="c-monto" name="monto" type="number" min={1000} step="1000" required value={monto} onChange={(e) => setMonto(e.target.value)} />
         </div>
         <div className="campo">
           <label htmlFor="c-descuento">Descuento (₡)</label>
