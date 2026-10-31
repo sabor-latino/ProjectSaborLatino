@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ProjectSaborLatino.DTOs.Cuenta;
 using ProjectSaborLatino.Models;
-using ProjectSaborLatino.Services;
 
 namespace ProjectSaborLatino.Controllers;
 
@@ -12,12 +11,10 @@ namespace ProjectSaborLatino.Controllers;
 public class CuentaController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ISolicitudService _solicitudes;
 
-    public CuentaController(UserManager<ApplicationUser> userManager, ISolicitudService solicitudes)
+    public CuentaController(UserManager<ApplicationUser> userManager)
     {
         _userManager = userManager;
-        _solicitudes = solicitudes;
     }
 
     // POST api/cuenta/registro → crea una cuenta con rol Cliente
@@ -40,9 +37,6 @@ public class CuentaController : ControllerBase
         }
 
         await _userManager.AddToRoleAsync(usuario, Roles.Cliente);
-
-        // Si antes pidió cotizaciones como visitante con este correo, ahora quedan en su cuenta
-        await _solicitudes.AsignarAClienteAsync(dto.Email, usuario.Id);
 
         return CreatedAtAction(nameof(ObtenerPerfil), await CrearPerfilAsync(usuario));
     }

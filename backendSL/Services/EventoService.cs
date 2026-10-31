@@ -2,8 +2,28 @@
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Eventos;
 using ProjectSaborLatino.Models;
+using Microsoft.Data.SqlClient;
 
 namespace ProjectSaborLatino.Services;
+
+// Los bloqueos de aplicación serializan las escrituras de un recurso entre DbContexts.
+internal static class ReservaLocks
+{
+    public static async Task TomarAsync(ApplicationDbContext db, IEnumerable<string> recursos)
+    {
+        foreach (var recurso in recursos.Distinct().Order(StringComparer.Ordinal))
+        {
+            try
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"DECLARE @resultado int; EXEC @resultado = sp_getapplock @Resource={"SaborLatino:" + recurso}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=15000; IF @resultado < 0 THROW 51000, 'No se pudo bloquear el recurso.', 1;");
+            }
+            catch (SqlException ex) when (ex.Number is 1205 or 1222 or 51000)
+            {
+                throw new DatosInvalidosException("El recurso está ocupado; vuelva a intentar la operación.");
+            }
+        }
+    }
+}
 
 public interface IEventoService
 {
@@ -43,6 +63,7 @@ public class EventoService : IEventoService
 
     public async Task<EventoDto> CrearAsync(EventoCrearDto dto, string usuarioId)
     {
+        await using var transaction = await _db.Database.BeginTransactionAsync();
         var cotizacion = await _db.Cotizaciones
             .Include(c => c.Solicitud)
             .FirstOrDefaultAsync(c => c.Id == dto.CotizacionId);
@@ -85,10 +106,11 @@ public class EventoService : IEventoService
         if (dto.CopiarEquipoDelPaquete && solicitud.PaqueteId is not null)
         {
             var equipoDelPaquete = await _db.PaquetesEquipos
-                .Where(pe => pe.PaqueteId == solicitud.PaqueteId && pe.Equipo!.Activo)
+                .Where(pe => pe.PaqueteId == solicitud.PaqueteId)
                 .Select(pe => new EventoEquipoAsignarDto { EquipoId = pe.EquipoId, Cantidad = pe.Cantidad })
                 .ToListAsync();
 
+            await ReservaLocks.TomarAsync(_db, equipoDelPaquete.Select(e => $"equipo:{e.EquipoId}"));
             await ValidarDisponibilidadAsync(equipoDelPaquete, inicio, fin, excluirEventoId: null);
 
             foreach (var e in equipoDelPaquete)
@@ -107,6 +129,7 @@ public class EventoService : IEventoService
 
         _db.Eventos.Add(evento);
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return (await ObtenerPorIdAsync(evento.Id, null, null))!;
     }
@@ -192,6 +215,8 @@ public class EventoService : IEventoService
     // Reemplaza todo el equipo del evento por la lista recibida
     public async Task<EventoDto?> AsignarEquiposAsync(int id, List<EventoEquipoAsignarDto> equipos)
     {
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await ReservaLocks.TomarAsync(_db, [$"evento-equipo:{id}"]);
         var evento = await _db.Eventos
             .Include(e => e.Equipos)
             .FirstOrDefaultAsync(e => e.Id == id);
@@ -201,6 +226,8 @@ public class EventoService : IEventoService
         }
 
         ValidarQueSePuedeModificar(evento);
+        await ReservaLocks.TomarAsync(_db, evento.Equipos.Select(e => $"equipo:{e.EquipoId}")
+            .Concat(equipos.Select(e => $"equipo:{e.EquipoId}")));
 
         if (equipos.Select(e => e.EquipoId).Distinct().Count() != equipos.Count)
         {
@@ -227,12 +254,15 @@ public class EventoService : IEventoService
         }
 
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
         return await ObtenerPorIdAsync(id, null, null);
     }
 
     // Reemplaza todos los trabajadores del evento por la lista recibida
     public async Task<EventoDto?> AsignarTrabajadoresAsync(int id, List<EventoTrabajadorAsignarDto> trabajadores)
     {
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await ReservaLocks.TomarAsync(_db, [$"evento-trabajador:{id}"]);
         var evento = await _db.Eventos
             .Include(e => e.Trabajadores)
             .FirstOrDefaultAsync(e => e.Id == id);
@@ -242,6 +272,8 @@ public class EventoService : IEventoService
         }
 
         ValidarQueSePuedeModificar(evento);
+        await ReservaLocks.TomarAsync(_db, evento.Trabajadores.Select(t => $"empleado:{t.EmpleadoId}")
+            .Concat(trabajadores.Select(t => $"empleado:{t.EmpleadoId}")));
 
         var ids = trabajadores.Select(t => t.EmpleadoId).ToList();
         if (ids.Distinct().Count() != ids.Count)
@@ -293,6 +325,7 @@ public class EventoService : IEventoService
         }
 
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
         return await ObtenerPorIdAsync(id, null, null);
     }
 
@@ -341,7 +374,12 @@ public class EventoService : IEventoService
 
     public async Task<EventoDto?> CancelarAsync(int id, string motivo, string usuarioId)
     {
-        var evento = await _db.Eventos.FindAsync(id);
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await ReservaLocks.TomarAsync(_db, [$"evento-equipo:{id}", $"evento-trabajador:{id}"]);
+        var evento = await _db.Eventos
+            .Include(e => e.Equipos)
+            .Include(e => e.Trabajadores)
+            .FirstOrDefaultAsync(e => e.Id == id);
         if (evento is null)
         {
             return null;
@@ -352,9 +390,13 @@ public class EventoService : IEventoService
             throw new DatosInvalidosException($"El evento está {evento.Estado} y no se puede cancelar.");
         }
 
+        await ReservaLocks.TomarAsync(_db, evento.Equipos.Select(e => $"equipo:{e.EquipoId}")
+            .Concat(evento.Trabajadores.Select(t => $"empleado:{t.EmpleadoId}")));
+
         evento.MotivoCancelacion = motivo.Trim();
         RegistrarCambio(evento, EstadoEvento.Cancelado, usuarioId, motivo.Trim());
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return await ObtenerPorIdAsync(id, null, null);
     }
@@ -367,39 +409,51 @@ public class EventoService : IEventoService
             throw new DatosInvalidosException("La fecha 'desde' debe ser anterior a 'hasta'.");
         }
 
-        var reservado = await ReservadoPorEquipoAsync(desde, hasta, excluirEventoId: null);
-
         var equipos = await _db.Equipos
             .Where(e => e.Activo)
             .OrderBy(e => e.Nombre)
             .ToListAsync();
 
-        return equipos.Select(e =>
+        var resultados = new List<DisponibilidadEquipoDto>();
+        foreach (var e in equipos)
         {
-            var reservada = reservado.GetValueOrDefault(e.Id);
-            return new DisponibilidadEquipoDto
+            var reservada = await MaximoReservadoAsync(_db, e.Id, desde, hasta, null);
+            resultados.Add(new DisponibilidadEquipoDto
             {
                 EquipoId = e.Id,
                 Nombre = e.Nombre,
                 CantidadTotal = e.CantidadTotal,
                 Reservada = reservada,
                 Disponible = Math.Max(0, e.CantidadTotal - reservada)
-            };
-        }).ToList();
+            });
+        }
+        return resultados;
     }
 
-    // Suma, por equipo, lo reservado en eventos no cancelados que se cruzan con [inicio, fin).
-    // Dos rangos se cruzan si a.Inicio < b.Fin y b.Inicio < a.Fin.
-    private async Task<Dictionary<int, int>> ReservadoPorEquipoAsync(DateTime inicio, DateTime fin, int? excluirEventoId)
+    // Barrido de extremos: en el mismo instante se liberan primero las reservas que terminan.
+    internal static async Task<int> MaximoReservadoAsync(ApplicationDbContext db, int equipoId, DateTime inicio, DateTime fin, int? excluirEventoId)
     {
-        return await _db.EventosEquipos
+        var reservas = await db.EventosEquipos
             .Where(ee => ee.Evento!.Estado != EstadoEvento.Cancelado
+                && ee.EquipoId == equipoId
                 && (excluirEventoId == null || ee.EventoId != excluirEventoId)
                 && ee.Evento.FechaInicio < fin
                 && inicio < ee.Evento.FechaFin)
-            .GroupBy(ee => ee.EquipoId)
-            .Select(g => new { EquipoId = g.Key, Total = g.Sum(x => x.Cantidad) })
-            .ToDictionaryAsync(x => x.EquipoId, x => x.Total);
+            .Select(ee => new { ee.Cantidad, ee.Evento!.FechaInicio, ee.Evento.FechaFin })
+            .ToListAsync();
+        var extremos = reservas.SelectMany(r => new[]
+        {
+            (Fecha: r.FechaInicio < inicio ? inicio : r.FechaInicio, Cambio: r.Cantidad),
+            (Fecha: r.FechaFin > fin ? fin : r.FechaFin, Cambio: -r.Cantidad)
+        }).OrderBy(x => x.Fecha).ThenBy(x => x.Cambio);
+        var actual = 0;
+        var maximo = 0;
+        foreach (var extremo in extremos)
+        {
+            actual += extremo.Cambio;
+            maximo = Math.Max(maximo, actual);
+        }
+        return maximo;
     }
 
     // Revisa que cada equipo exista, esté activo y alcance en esas fechas
@@ -415,8 +469,6 @@ public class EventoService : IEventoService
             .Where(e => ids.Contains(e.Id))
             .ToDictionaryAsync(e => e.Id);
 
-        var reservado = await ReservadoPorEquipoAsync(inicio, fin, excluirEventoId);
-
         foreach (var p in pedidos)
         {
             if (!equipos.TryGetValue(p.EquipoId, out var equipo) || !equipo.Activo)
@@ -424,7 +476,7 @@ public class EventoService : IEventoService
                 throw new DatosInvalidosException($"No existe un equipo activo con Id {p.EquipoId}.");
             }
 
-            var ocupado = reservado.GetValueOrDefault(p.EquipoId);
+            var ocupado = await MaximoReservadoAsync(_db, p.EquipoId, inicio, fin, excluirEventoId);
             if (ocupado + p.Cantidad > equipo.CantidadTotal)
             {
                 var libre = Math.Max(0, equipo.CantidadTotal - ocupado);

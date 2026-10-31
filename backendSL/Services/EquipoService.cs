@@ -54,28 +54,46 @@ public class EquipoService : IEquipoService
 
     public async Task<EquipoDto?> ActualizarAsync(int id, EquipoGuardarDto dto)
     {
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await ReservaLocks.TomarAsync(_db, [$"equipo:{id}"]);
         var entidad = await _db.Equipos.FindAsync(id);
         if (entidad is null)
         {
             return null;
         }
 
+        // Las fechas de eventos se guardan como hora local sin zona; solo compromisos
+        // cuyo fin aún no pasó limitan el inventario actual.
+        var maximoReservado = await EventoService.MaximoReservadoAsync(
+            _db, id, DateTime.Now, DateTime.MaxValue, null);
+        if (dto.CantidadTotal < maximoReservado)
+        {
+            throw new DatosInvalidosException(
+                $"La cantidad total no puede ser menor que {maximoReservado} unidades ya reservadas simultáneamente.");
+        }
+
         CopiarDatos(dto, entidad);
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return ADto(entidad);
     }
 
     public async Task<bool> DesactivarAsync(int id)
     {
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await ReservaLocks.TomarAsync(_db, [$"equipo:{id}"]);
         var entidad = await _db.Equipos.FindAsync(id);
         if (entidad is null)
         {
             return false;
         }
 
+        // Desactivar impide nuevas reservas; las reservas históricas y futuras
+        // existentes permanecen en la base y siguen contando para el inventario.
         entidad.Activo = false;
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
         return true;
     }
 

@@ -127,6 +127,11 @@ public class UsuarioService : IUsuarioService
             throw new DatosInvalidosException("No se puede quitar el rol al último Superadministrador activo.");
         }
 
+        if (nuevo != Roles.Trabajador && await _db.Empleados.AnyAsync(e => e.UsuarioId == usuario.Id))
+        {
+            throw new DatosInvalidosException("No se puede cambiar el rol fuera de Trabajador mientras el usuario esté enlazado a un empleado.");
+        }
+
         if (!string.IsNullOrEmpty(rolActual))
         {
             await _userManager.RemoveFromRoleAsync(usuario, rolActual);
@@ -166,7 +171,7 @@ public class UsuarioService : IUsuarioService
         usuario.LockoutEnabled = true;
         usuario.LockoutEnd = activo ? null : DateTimeOffset.MaxValue;
 
-        var resultado = await _userManager.UpdateAsync(usuario);
+        var resultado = await _userManager.UpdateSecurityStampAsync(usuario);
         if (!resultado.Succeeded)
         {
             throw new DatosInvalidosException(string.Join(" ", resultado.Errors.Select(e => e.Description)));

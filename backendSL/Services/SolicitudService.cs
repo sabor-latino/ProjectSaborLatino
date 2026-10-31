@@ -12,7 +12,6 @@ public interface ISolicitudService
     Task<List<SolicitudDto>> ObtenerDeClienteAsync(string clienteUsuarioId);
     Task<SolicitudDto?> ObtenerPorIdAsync(int id, string? soloDelClienteId);
     Task<SolicitudDto?> CambiarEstadoAsync(int id, string estado);
-    Task<int> AsignarAClienteAsync(string correo, string clienteUsuarioId);
 }
 
 public class SolicitudService : ISolicitudService
@@ -38,7 +37,7 @@ public class SolicitudService : ISolicitudService
         }
 
         if (dto.PaqueteId is not null &&
-            !await _db.Paquetes.AnyAsync(p => p.Id == dto.PaqueteId && p.Activo))
+            !await _db.Paquetes.AnyAsync(p => p.Id == dto.PaqueteId && p.Activo && p.Servicio!.Activo))
         {
             throw new DatosInvalidosException($"No existe un paquete activo con Id {dto.PaqueteId}.");
         }
@@ -113,11 +112,27 @@ public class SolicitudService : ISolicitudService
     // El admin solo puede rechazar o cancelar, y nunca una solicitud ya aceptada
     public async Task<SolicitudDto?> CambiarEstadoAsync(int id, string estado)
     {
-        var solicitud = await _db.Solicitudes.FindAsync(id);
+        await using var transaccion = await _db.Database.BeginTransactionAsync();
+        var solicitud = await _db.Solicitudes
+            .FromSqlInterpolated($"SELECT * FROM [Solicitudes] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {id}")
+            .AsNoTracking()
+            .SingleOrDefaultAsync();
         if (solicitud is null)
         {
             return null;
         }
+
+        // La lectura bloqueada prevalece sobre copias anteriores de esta solicitud.
+        // Se conservan los cambios pendientes de otras entidades del contexto.
+        foreach (var anterior in _db.Cotizaciones.Local.Where(c => c.SolicitudId == id).ToList())
+        {
+            _db.Entry(anterior).State = EntityState.Detached;
+        }
+        foreach (var anterior in _db.Solicitudes.Local.Where(s => s.Id == id).ToList())
+        {
+            _db.Entry(anterior).State = EntityState.Detached;
+        }
+        _db.Solicitudes.Attach(solicitud);
 
         if (!Enum.TryParse<EstadoSolicitud>(estado, ignoreCase: true, out var nuevo) ||
             (nuevo != EstadoSolicitud.Rechazada && nuevo != EstadoSolicitud.Cancelada))
@@ -130,28 +145,19 @@ public class SolicitudService : ISolicitudService
             throw new DatosInvalidosException("La solicitud ya fue aceptada y no se puede cambiar.");
         }
 
-        solicitud.Estado = nuevo;
-        await _db.SaveChangesAsync();
-
-        return await ObtenerPorIdAsync(id, soloDelClienteId: null);
-    }
-
-    // Cuando un visitante se registra, recupera las solicitudes que mandó con su correo
-    public async Task<int> AsignarAClienteAsync(string correo, string clienteUsuarioId)
-    {
-        var correoNormalizado = correo.Trim().ToUpper();
-
-        var solicitudes = await _db.Solicitudes
-            .Where(s => s.ClienteUsuarioId == null && s.CorreoContacto.ToUpper() == correoNormalizado)
+        var enviadas = await _db.Cotizaciones
+            .Where(c => c.SolicitudId == id && c.Estado == EstadoCotizacion.Enviada)
             .ToListAsync();
-
-        foreach (var s in solicitudes)
+        foreach (var cotizacion in enviadas)
         {
-            s.ClienteUsuarioId = clienteUsuarioId;
+            cotizacion.Estado = EstadoCotizacion.Rechazada;
         }
 
+        solicitud.Estado = nuevo;
         await _db.SaveChangesAsync();
-        return solicitudes.Count;
+        await transaccion.CommitAsync();
+
+        return await ObtenerPorIdAsync(id, soloDelClienteId: null);
     }
 
     private static SolicitudDto ADto(Solicitud s) => new()
