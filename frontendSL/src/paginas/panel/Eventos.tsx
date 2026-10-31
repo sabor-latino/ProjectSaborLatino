@@ -201,7 +201,7 @@ function AsignarEquipo({ evento, alTerminar }: { evento: Evento; alTerminar: () 
           <tbody>
             {datos?.map((d) => {
               const propio = evento.equipos.find((e) => e.equipoId === d.equipoId)?.cantidad ?? 0;
-              const maximo = d.disponible + propio;
+              const maximo = Math.min(d.cantidadTotal, d.disponible + propio);
               return (
                 <tr key={d.equipoId}>
                   <td data-etiqueta="Equipo">{d.nombre}</td>
