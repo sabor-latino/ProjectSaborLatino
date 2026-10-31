@@ -73,9 +73,16 @@ export function obtenerToken(): string | null {
   const token = localStorage.getItem(CLAVE_TOKEN);
   const expira = Number(localStorage.getItem(CLAVE_EXPIRA) ?? 0);
 
-  if (!token || Date.now() >= expira) {
+  if (!token) {
     return null;
   }
+
+  if (Date.now() >= expira) {
+    borrarSesion();
+    window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+    return null;
+  }
+
   return token;
 }
 

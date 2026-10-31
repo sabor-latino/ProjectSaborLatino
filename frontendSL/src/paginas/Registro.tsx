@@ -56,7 +56,7 @@ export function Registro() {
   };
 
   return (
-    <Acceso frase="Con una cuenta, sus solicitudes quedan guardadas">
+    <Acceso frase="Inicie sesión antes de cotizar para guardar sus solicitudes y revisar sus cotizaciones.">
       <form className="formulario formulario--plano" onSubmit={enviar}>
         <div className="encabezado encabezado--sin-margen">
           <p className="antetitulo">Su cuenta</p>

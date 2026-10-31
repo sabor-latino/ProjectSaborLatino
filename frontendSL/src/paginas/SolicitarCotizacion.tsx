@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { api, ErrorApi } from '../api/cliente';
+import { api, ErrorApi, obtenerToken } from '../api/cliente';
 import type { Paquete, Perfil, Solicitud, SolicitudCrear } from '../api/tipos';
 import { useAuth } from '../auth/contexto';
 import { Mensaje } from '../componentes/Estado';
@@ -139,6 +139,13 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
     };
 
     try {
+      // Si había una sesión pero el token venció, no enviar la solicitud como visitante anónimo.
+      if (perfil && !obtenerToken()) {
+        throw new ErrorApi(401, [
+          'Su sesión venció. Inicie sesión nuevamente antes de enviar la solicitud para guardarla en su cuenta.',
+        ]);
+      }
+
       // Si hay sesión, el cliente de la API manda el token y la solicitud queda en la cuenta
       alEnviar(await api.post<Solicitud>('/api/solicitudes', cuerpo));
     } catch (error) {
