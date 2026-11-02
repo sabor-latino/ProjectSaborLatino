@@ -13,6 +13,7 @@ interface Estado<T> {
 export function useDatos<T>(ruta: string) {
   const [estado, setEstado] = useState<Estado<T>>({ ruta: '', datos: null, error: null });
   const [version, setVersion] = useState(0);
+  const [revalidando, setRevalidando] = useState(false);
 
   useEffect(() => {
     let vigente = true;
@@ -20,11 +21,17 @@ export function useDatos<T>(ruta: string) {
     api
       .get<T>(ruta)
       .then((datos) => {
-        if (vigente) setEstado({ ruta, datos, error: null });
+        if (vigente) {
+          setEstado({ ruta, datos, error: null });
+          setRevalidando(false);
+        }
       })
       .catch((e: unknown) => {
         const mensaje = e instanceof ErrorApi ? e.message : 'No se pudieron cargar los datos.';
-        if (vigente) setEstado({ ruta, datos: null, error: mensaje });
+        if (vigente) {
+          setEstado({ ruta, datos: null, error: mensaje });
+          setRevalidando(false);
+        }
       });
 
     // Si la ruta cambia antes de que llegue la respuesta, se ignora la respuesta vieja
@@ -33,10 +40,13 @@ export function useDatos<T>(ruta: string) {
     };
   }, [ruta, version]);
 
-  const recargar = useCallback(() => setVersion((v) => v + 1), []);
+  const recargar = useCallback(() => {
+    setRevalidando(true);
+    setVersion((v) => v + 1);
+  }, []);
 
-  // Está cargando mientras la respuesta guardada no sea de la ruta actual
-  const cargando = estado.ruta !== ruta;
+  // Está cargando mientras la respuesta guardada no sea de la ruta actual o se revalide manualmente
+  const cargando = estado.ruta !== ruta || revalidando;
 
   return {
     datos: cargando ? null : estado.datos,

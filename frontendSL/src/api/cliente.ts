@@ -1,7 +1,7 @@
 // Cliente para hablar con la API: arma la URL, manda y recibe JSON,
 // agrega el token de la sesión y traduce los errores a mensajes en español.
 
-const URL_API = import.meta.env.VITE_API_URL ?? 'https://localhost:7154';
+const URL_API = import.meta.env.VITE_API_URL ?? 'http://localhost:5238';
 
 export const CLAVE_TOKEN = 'sl_token';
 export const CLAVE_EXPIRA = 'sl_expira';
@@ -66,6 +66,9 @@ function mensajesDeError(estado: number, cuerpo: ProblemDetails | null): string[
       return [...new Set(mensajes)];
     }
   }
+  if (cuerpo?.detail) {
+    return [cuerpo.detail];
+  }
   return [MENSAJES_POR_ESTADO[estado] ?? `Error inesperado (${estado}).`];
 }
 
@@ -125,10 +128,17 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise
   }
 
   const texto = await respuesta.text();
-  const datos = texto ? JSON.parse(texto) : null;
+  let datos: unknown = null;
+  if (texto) {
+    try {
+      datos = JSON.parse(texto);
+    } catch {
+      datos = null;
+    }
+  }
 
   if (!respuesta.ok) {
-    throw new ErrorApi(respuesta.status, mensajesDeError(respuesta.status, datos));
+    throw new ErrorApi(respuesta.status, mensajesDeError(respuesta.status, datos as ProblemDetails | null));
   }
 
   return datos as T;

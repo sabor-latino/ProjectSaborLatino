@@ -1,32 +1,55 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { ErrorApi } from '../api/cliente';
 import { useAuth } from '../auth/contexto';
 import { Acceso } from '../componentes/Acceso';
 import { Mensaje } from '../componentes/Estado';
+import { usePreferencias } from '../preferencias/PreferenciasContext';
 import { validacionAccesible } from '../utilidades/formularios';
 
-export function Login() {
-  const { perfil, iniciarSesion } = useAuth();
-  const navegar = useNavigate();
-  const ubicacion = useLocation();
-  // Página a la que quería ir antes de que le pidieran iniciar sesión
-  const destino = (ubicacion.state as { desde?: string } | null)?.desde ?? '/mi-cuenta';
+export type TipoAcceso = 'admin' | 'empleado';
 
+export function Login() {
+  const { perfil, iniciarSesion, cerrarSesion, tieneRol } = useAuth();
+  const { t } = usePreferencias();
+  const ubicacion = useLocation();
+  const rawDestino = (ubicacion.state as { desde?: string } | null)?.desde;
+  const destino = rawDestino && rawDestino.startsWith('/') && !rawDestino.startsWith('//') ? rawDestino : '/panel';
+
+  const [tipoAcceso, setTipoAcceso] = useState<TipoAcceso>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [intentoRealizado, setIntentoRealizado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const cajaError = useRef<HTMLDivElement>(null);
 
-  // El foco va al mensaje de error para que se anuncie
+  const esAdmin = tieneRol('Administrador', 'Superadministrador');
+  const esTrabajador = tieneRol('Trabajador');
+  const esAutorizado = esAdmin || esTrabajador;
+
+  const errorMostrado =
+    error ??
+    (intentoRealizado && !esAutorizado
+      ? t(
+          'Acceso restringido exclusivamente al personal administrativo y técnico autorizado.',
+          'Access restricted exclusively to authorized administrative and technical staff.',
+        )
+      : null);
+
   useEffect(() => {
-    if (error) {
+    if (perfil && !esAutorizado) {
+      cerrarSesion();
+    }
+  }, [perfil, esAutorizado, cerrarSesion]);
+
+  useEffect(() => {
+    if (errorMostrado) {
       cajaError.current?.focus();
     }
-  }, [error]);
+  }, [errorMostrado]);
 
-  if (perfil) {
+  if (perfil && esAutorizado) {
     return <Navigate to={destino} replace />;
   }
 
@@ -34,26 +57,89 @@ export function Login() {
     e.preventDefault();
     setEnviando(true);
     setError(null);
+    setIntentoRealizado(false);
 
     try {
       await iniciarSesion(email.trim(), password);
-      navegar(destino, { replace: true });
+      setIntentoRealizado(true);
+      setEnviando(false);
     } catch (err) {
-      setError(err instanceof ErrorApi ? err.message : 'No se pudo iniciar sesión. Intente de nuevo.');
+      setError(
+        err instanceof ErrorApi
+          ? err.message
+          : t('No se pudo iniciar sesión. Intente de nuevo.', 'Could not sign in. Please try again.'),
+      );
       setEnviando(false);
     }
   };
 
   return (
-    <Acceso frase="Siga sus cotizaciones y eventos desde un solo lugar">
+    <Acceso
+      frase={
+        tipoAcceso === 'admin'
+          ? t(
+              'Consola privada de administración de catálogo, promociones de temporada, cotizaciones y logística de eventos de Sabor Latino.',
+              'Private administration console for Sabor Latino catalog, seasonal promotions, quotes, and event logistics.',
+            )
+          : t(
+              'Portal interno para el personal técnico y operativo de Sabor Latino. Consulte sus asignaciones de eventos y gestione montajes en tiempo real.',
+              'Internal portal for Sabor Latino technical and operations staff. Review event assignments and manage real-time setups.',
+            )
+      }
+    >
       <form className="formulario formulario--plano" onSubmit={enviar}>
         <div className="encabezado encabezado--sin-margen">
-          <p className="antetitulo">Su cuenta</p>
-          <h1 className="titulo-seccion">Iniciar sesión</h1>
+          <p className="antetitulo">{t('Acceso interno restringido', 'Restricted internal access')}</p>
+          <h1 className="titulo-seccion">
+            {tipoAcceso === 'admin'
+              ? t('Portal Administrativo', 'Administrative Portal')
+              : t('Portal de Personal y Empleados', 'Staff & Employee Portal')}
+          </h1>
         </div>
 
+        <div className="filtros" role="tablist" aria-label={t('Modalidad de acceso al portal privado', 'Private portal access mode')}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tipoAcceso === 'admin'}
+            className="chip"
+            onClick={() => {
+              setTipoAcceso('admin');
+              setError(null);
+              setIntentoRealizado(false);
+            }}
+          >
+            {t('Acceso Administrativo', 'Administrative Access')}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tipoAcceso === 'empleado'}
+            className="chip"
+            onClick={() => {
+              setTipoAcceso('empleado');
+              setError(null);
+              setIntentoRealizado(false);
+            }}
+          >
+            {t('Acceso Empleado / Personal', 'Employee / Staff Access')}
+          </button>
+        </div>
+
+        <p className="campo__ayuda" style={{ margin: '0 0 var(--esp-2)' }}>
+          {tipoAcceso === 'admin'
+            ? t(
+                'Acceso para Administradores y Superadministradores para la gestión integral de catálogo, promociones, eventos y usuarios.',
+                'Access for Administrators and Superadministrators to manage catalog, promotions, events, and users.',
+              )
+            : t(
+                'Acceso para Trabajadores y personal técnico para consultar eventos asignados y actualizar estados en vivo.',
+                'Access for Workers and technical staff to check assigned events and update real-time status.',
+              )}
+        </p>
+
         <div className="campo">
-          <label htmlFor="email">Correo electrónico</label>
+          <label htmlFor="email">{t('Correo electrónico', 'Email address')}</label>
           <input
             id="email"
             name="email"
@@ -67,12 +153,12 @@ export function Login() {
             onChange={(e) => setEmail(e.target.value)}
           />
           <p className="campo__error" id="email-error">
-            Escriba un correo válido.
+            {t('Escriba un correo electrónico válido.', 'Please enter a valid email address.')}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="password">Contraseña</label>
+          <label htmlFor="password">{t('Contraseña', 'Password')}</label>
           <input
             id="password"
             name="password"
@@ -85,26 +171,19 @@ export function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <p className="campo__error" id="password-error">
-            Escriba su contraseña.
+            {t('Escriba su contraseña.', 'Please enter your password.')}
           </p>
         </div>
 
-        {error && (
+        {errorMostrado && (
           <div ref={cajaError} tabIndex={-1}>
-            <Mensaje tipo="error">{error}</Mensaje>
+            <Mensaje tipo="error">{errorMostrado}</Mensaje>
           </div>
         )}
 
         <button type="submit" className="boton boton--accion boton--ancho" disabled={enviando}>
-          {enviando ? 'Entrando…' : 'Entrar'}
+          {enviando ? t('Entrando…', 'Signing in…') : t('Entrar', 'Sign in')}
         </button>
-
-        <p className="centrado">
-          ¿No tiene cuenta?{' '}
-          <Link to="/registro" className="enlace">
-            Cree una aquí
-          </Link>
-        </p>
       </form>
     </Acceso>
   );

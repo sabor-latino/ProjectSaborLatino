@@ -21,6 +21,7 @@ export function Usuarios() {
     `/api/usuarios?incluirInactivos=true${rol ? `&rol=${rol}` : ''}`,
   );
   const [creando, setCreando] = useState(false);
+  const [editando, setEditando] = useState<Usuario | null>(null);
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
 
   const ejecutar = async (llamada: () => Promise<unknown>, exito: string) => {
@@ -60,9 +61,11 @@ export function Usuarios() {
               <tr>
                 <th scope="col">Nombre</th>
                 <th scope="col">Correo</th>
+                <th scope="col">Teléfono</th>
                 <th scope="col">Rol</th>
                 <th scope="col">Desde</th>
                 <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -75,6 +78,7 @@ export function Usuarios() {
                       {soyYo && <span className="texto-suave"> (usted)</span>}
                     </td>
                     <td data-etiqueta="Correo">{u.email}</td>
+                    <td data-etiqueta="Teléfono">{u.telefono ?? '—'}</td>
                     <td data-etiqueta="Rol">
                       {soyYo ? (
                         u.rol
@@ -118,6 +122,15 @@ export function Usuarios() {
                         </button>
                       )}
                     </td>
+                    <td data-etiqueta="Acciones">
+                      <button
+                        type="button"
+                        className="boton boton--borde boton--mini"
+                        onClick={() => setEditando(u)}
+                      >
+                        Editar perfil
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -133,6 +146,19 @@ export function Usuarios() {
             alTerminar={(nombre) => {
               setCreando(false);
               setAviso({ tipo: 'exito', texto: `Se creó la cuenta de ${nombre}.` });
+              recargar();
+            }}
+          />
+        )}
+      </Dialogo>
+
+      <Dialogo titulo="Editar perfil de usuario" abierto={editando !== null} alCerrar={() => setEditando(null)}>
+        {editando && (
+          <EditarPerfilUsuario
+            usuario={editando}
+            alTerminar={(nombre) => {
+              setEditando(null);
+              setAviso({ tipo: 'exito', texto: `Se actualizó el perfil de ${nombre}.` });
               recargar();
             }}
           />
@@ -192,5 +218,64 @@ function NuevoUsuario({ roles, alTerminar }: { roles: Rol[]; alTerminar: (nombre
         </div>
       </div>
     </FormularioAccion>
+  );
+}
+
+function EditarPerfilUsuario({ usuario, alTerminar }: { usuario: Usuario; alTerminar: (nombre: string) => void }) {
+  const [nombreCompleto, setNombreCompleto] = useState(usuario.nombreCompleto);
+  const [telefono, setTelefono] = useState(usuario.telefono ?? '');
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const guardar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuardando(true);
+    setError(null);
+    try {
+      await api.put(`/api/usuarios/${usuario.id}/perfil`, {
+        nombreCompleto: nombreCompleto.trim(),
+        telefono: telefono.trim() || null,
+      });
+      alTerminar(nombreCompleto.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar el perfil.');
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <form className="formulario" onSubmit={guardar}>
+      {error && <Mensaje tipo="error">{error}</Mensaje>}
+      <div className="campo">
+        <label htmlFor="ed-user-email">Correo (no modificable)</label>
+        <input id="ed-user-email" type="email" disabled value={usuario.email} />
+      </div>
+      <div className="campo">
+        <label htmlFor="ed-user-nombre">Nombre completo *</label>
+        <input
+          id="ed-user-nombre"
+          type="text"
+          required
+          maxLength={150}
+          value={nombreCompleto}
+          onChange={(e) => setNombreCompleto(e.target.value)}
+        />
+      </div>
+      <div className="campo">
+        <label htmlFor="ed-user-telefono">Teléfono</label>
+        <input
+          id="ed-user-telefono"
+          type="tel"
+          maxLength={30}
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
+        />
+      </div>
+      <div className="acciones">
+        <button type="submit" className="boton boton--accion" disabled={guardando}>
+          {guardando ? 'Guardando…' : 'Guardar perfil'}
+        </button>
+      </div>
+    </form>
   );
 }

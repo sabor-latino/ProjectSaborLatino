@@ -5,7 +5,9 @@
 export interface Servicio {
   id: number;
   nombre: string;
+  nombreEn?: string | null;
   descripcion: string | null;
+  descripcionEn?: string | null;
   imagenUrl: string | null;
   activo: boolean;
 }
@@ -13,6 +15,9 @@ export interface Servicio {
 export interface PaqueteEquipo {
   equipoId: number;
   equipoNombre: string;
+  equipoNombreEn?: string | null;
+  especificacionTecnica?: string | null;
+  especificacionTecnicaEn?: string | null;
   cantidad: number;
 }
 
@@ -20,10 +25,20 @@ export interface Paquete {
   id: number;
   servicioId: number;
   servicioNombre: string;
+  servicioNombreEn?: string | null;
   nombre: string;
+  nombreEn?: string | null;
   descripcion: string | null;
+  descripcionEn?: string | null;
   precioBase: number;
   imagenUrl: string | null;
+  potenciaSonido?: string | null;
+  coberturaAforo?: string | null;
+  duracionMontaje?: string | null;
+  requerimientosElectricos?: string | null;
+  espacioMinimo?: string | null;
+  fichaTecnica?: string | null;
+  fichaTecnicaEn?: string | null;
   activo: boolean;
   equipos: PaqueteEquipo[];
 }
@@ -31,6 +46,7 @@ export interface Paquete {
 export interface ImagenGaleria {
   id: number;
   titulo: string;
+  tituloEn?: string | null;
   imagenUrl: string;
   orden: number;
   activo: boolean;
@@ -39,9 +55,65 @@ export interface ImagenGaleria {
 export interface PreguntaFrecuente {
   id: number;
   pregunta: string;
+  preguntaEn?: string | null;
   respuesta: string;
+  respuestaEn?: string | null;
   orden: number;
   activo: boolean;
+}
+
+export interface PromocionPaqueteItem {
+  paqueteId: number;
+  paqueteNombre: string;
+  paqueteNombreEn?: string | null;
+  precioBase: number;
+  precioPromocional: number;
+}
+
+export interface PromocionTemporada {
+  id: number;
+  nombre: string;
+  nombreEn?: string | null;
+  descripcion?: string | null;
+  descripcionEn?: string | null;
+  etiquetaTemporada?: string | null;
+  etiquetaTemporadaEn?: string | null;
+  porcentajeDescuento: number;
+  codigoPromocional?: string | null;
+  fechaInicio: string;
+  fechaFin: string;
+  imagenUrl?: string | null;
+  destacadaEnInicio: boolean;
+  activo: boolean;
+  vigente: boolean;
+  paquetes: PromocionPaqueteItem[];
+}
+
+export interface ContenidoInicio {
+  etiquetaPortada: string;
+  etiquetaPortadaEn: string;
+  tituloPortada: string;
+  tituloPortadaEn: string;
+  subtituloPortada: string;
+  subtituloPortadaEn: string;
+  fotoPortadaUrl: string | null;
+  fotoCotizarUrl: string | null;
+  paso1Titulo: string;
+  paso1TituloEn: string;
+  paso1Texto: string;
+  paso1TextoEn: string;
+  paso2Titulo: string;
+  paso2TituloEn: string;
+  paso2Texto: string;
+  paso2TextoEn: string;
+  paso3Titulo: string;
+  paso3TituloEn: string;
+  paso3Texto: string;
+  paso3TextoEn: string;
+  ctaTitulo: string;
+  ctaTituloEn: string;
+  ctaSubtitulo: string;
+  ctaSubtituloEn: string;
 }
 
 // =============== Cuenta ===============
@@ -118,12 +190,16 @@ export interface Cotizacion {
 
 export interface Fidelidad {
   solicitudId: number;
+  clienteUsuarioId?: string | null;
   eventosFinalizados: number;
   eventosMinimos: number;
   porcentajeDescuento: number;
   aplica: boolean;
   precioBase: number | null;
   descuentoSugerido: number | null;
+  promocionTemporadaNombre?: string | null;
+  porcentajePromocionTemporada?: number;
+  descuentoPromocionSugerido?: number | null;
 }
 
 // =============== Eventos ===============
@@ -131,7 +207,10 @@ export interface Fidelidad {
 export interface Equipo {
   id: number;
   nombre: string;
+  nombreEn?: string | null;
   tipo: string | null;
+  especificacionTecnica?: string | null;
+  especificacionTecnicaEn?: string | null;
   cantidadTotal: number;
   activo: boolean;
 }

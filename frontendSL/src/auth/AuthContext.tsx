@@ -69,9 +69,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [perfil],
   );
 
+  const actualizarPerfilLocal = useCallback((perfilActualizado: Perfil) => {
+    setPerfil(perfilActualizado);
+  }, []);
+
   const sesion = useMemo<Sesion>(
-    () => ({ perfil, cargando, iniciarSesion, registrarse, cerrarSesion, tieneRol }),
-    [perfil, cargando, iniciarSesion, registrarse, cerrarSesion, tieneRol],
+    () => ({ perfil, cargando, iniciarSesion, registrarse, cerrarSesion, tieneRol, actualizarPerfilLocal }),
+    [perfil, cargando, iniciarSesion, registrarse, cerrarSesion, tieneRol, actualizarPerfilLocal],
   );
 
   return <ContextoSesion.Provider value={sesion}>{children}</ContextoSesion.Provider>;

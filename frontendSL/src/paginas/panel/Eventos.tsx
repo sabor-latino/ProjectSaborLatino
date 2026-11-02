@@ -8,7 +8,7 @@ import { useDatos } from '../../hooks/useDatos';
 import { ESTADOS_EVENTO, nombreEstado, siguienteEstadoEvento } from '../../utilidades/estados';
 import { formatoFechaHora } from '../../utilidades/formato';
 
-type Accion = { tipo: 'equipo' | 'personal' | 'estado' | 'cancelar'; evento: Evento } | null;
+type Accion = { tipo: 'equipo' | 'personal' | 'estado' | 'cancelar' | 'editar'; evento: Evento } | null;
 
 // Agenda de eventos: el admin asigna equipo y personal y avanza el estado
 export function Eventos() {
@@ -86,6 +86,9 @@ export function Eventos() {
                       <button type="button" className="boton boton--borde boton--chico" onClick={() => setAccion({ tipo: 'personal', evento: ev })}>
                         Asignar personal
                       </button>
+                      <button type="button" className="boton boton--borde boton--chico" onClick={() => setAccion({ tipo: 'editar', evento: ev })}>
+                        Editar evento
+                      </button>
                       <button type="button" className="boton boton--texto boton--chico" onClick={() => setAccion({ tipo: 'cancelar', evento: ev })}>
                         Cancelar evento
                       </button>
@@ -109,6 +112,14 @@ export function Eventos() {
       </Dialogo>
       <Dialogo titulo="Cancelar evento" abierto={accion?.tipo === 'cancelar'} alCerrar={() => setAccion(null)}>
         {accion?.tipo === 'cancelar' && <CancelarEvento evento={accion.evento} alTerminar={() => terminar('Evento cancelado.')} />}
+      </Dialogo>
+      <Dialogo titulo="Editar evento" abierto={accion?.tipo === 'editar'} alCerrar={() => setAccion(null)}>
+        {accion?.tipo === 'editar' && (
+          <EditarEvento
+            evento={accion.evento}
+            alTerminar={() => terminar('Evento actualizado con éxito.')}
+          />
+        )}
       </Dialogo>
     </section>
   );
@@ -293,5 +304,93 @@ function AsignarPersonal({ evento, alTerminar }: { evento: Evento; alTerminar: (
         })}
       </ul>
     </FormularioAccion>
+  );
+}
+
+function aFormatoFechaInput(iso: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function EditarEvento({ evento, alTerminar }: { evento: Evento; alTerminar: () => void }) {
+  const [fechaInicio, setFechaInicio] = useState(aFormatoFechaInput(evento.fechaInicio));
+  const [fechaFin, setFechaFin] = useState(aFormatoFechaInput(evento.fechaFin));
+  const [lugar, setLugar] = useState(evento.lugar ?? '');
+  const [notas, setNotas] = useState(evento.notas ?? '');
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const guardar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuardando(true);
+    setError(null);
+    try {
+      await api.put(`/api/eventos/${evento.id}`, {
+        fechaInicio: fechaInicio ? new Date(fechaInicio).toISOString() : null,
+        fechaFin: fechaFin ? new Date(fechaFin).toISOString() : null,
+        lugar: lugar.trim(),
+        notas: notas.trim() || null,
+      });
+      alTerminar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar el evento.');
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <form className="formulario" onSubmit={guardar}>
+      {error && <Mensaje tipo="error">{error}</Mensaje>}
+      <div className="fila">
+        <div className="campo">
+          <label htmlFor="ed-inicio">Fecha y hora de inicio *</label>
+          <input
+            id="ed-inicio"
+            type="datetime-local"
+            required
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
+        </div>
+        <div className="campo">
+          <label htmlFor="ed-fin">Fecha y hora de fin *</label>
+          <input
+            id="ed-fin"
+            type="datetime-local"
+            required
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="campo">
+        <label htmlFor="ed-lugar">Lugar del evento *</label>
+        <input
+          id="ed-lugar"
+          type="text"
+          required
+          maxLength={300}
+          value={lugar}
+          onChange={(e) => setLugar(e.target.value)}
+        />
+      </div>
+      <div className="campo">
+        <label htmlFor="ed-notas">Notas o requerimientos</label>
+        <textarea
+          id="ed-notas"
+          rows={3}
+          maxLength={2000}
+          value={notas}
+          onChange={(e) => setNotas(e.target.value)}
+        />
+      </div>
+      <div className="acciones">
+        <button type="submit" className="boton boton--accion" disabled={guardando}>
+          {guardando ? 'Guardando…' : 'Guardar cambios'}
+        </button>
+      </div>
+    </form>
   );
 }

@@ -189,3 +189,36 @@ A continuación se detallan los hallazgos detectados al revisar la integración 
     }
     ```
   - Si existen archivos `*.test.*` pero falta `"test:ci"` en `frontendSL/package.json`, el job `Frontend (Lint, TypeScript + Vite Build & Test Contract)` en GitHub Actions fallará con código de salida `1`.
+
+---
+
+## 3. Evolución 2026-11 — Fichas Técnicas, Internacionalización (ES/EN), Promociones de Temporada y Contenido de Inicio
+
+### 3.1. Especificaciones técnicas y campos bilingües en Catálogo
+
+- **`GET /api/paquetes` / `POST /api/paquetes` / `PUT /api/paquetes/{id}`**:
+  - Además de los campos base, expone y recibe: `nombreEn`, `descripcionEn`, `potenciaSonido`, `coberturaAforo`, `duracionMontaje`, `requerimientosElectricos`, `espacioMinimo`, `fichaTecnica`, `fichaTecnicaEn`, `servicioNombreEn` y en cada equipo `equipoNombreEn`, `especificacionTecnica`, `especificacionTecnicaEn`.
+- **`GET /api/servicios`**, **`GET /api/equipos`**, **`GET /api/preguntas-frecuentes`**:
+  - Incorporan sus respectivos campos `*En` y `especificacionTecnica`.
+
+### 3.2. Promociones de Temporada (`/api/promociones`)
+
+- **`GET /api/promociones`** (`AllowAnonymous`; acepta `?incluirInactivas=true` para `Administrador` y `Superadministrador`):
+  - Devuelve las promociones vigentes con `porcentajeDescuento` (`1`–`90`), `codigoPromocional`, `fechaInicio`, `fechaFin`, `etiquetaTemporada`/`etiquetaTemporadaEn`, `destacadaEnInicio`, `vigente` y la lista `paquetes` con `precioBase` y `precioPromocional` calculado.
+- **`POST /api/promociones`**, **`PUT /api/promociones/{id}`**, **`DELETE /api/promociones/{id}`** (`Administrador,Superadministrador`):
+  - Gestión completa y desactivación lógica (`Activo = false`), validando que `FechaFin > FechaInicio` y que los paquetes asociados estén activos.
+- **`GET /api/solicitudes/{id}/fidelidad`**:
+  - Incluye `promocionTemporadaNombre`, `porcentajePromocionTemporada` y `descuentoPromocionSugerido` cuando el paquete solicitado cuenta con promoción vigente.
+
+### 3.3. Administración de Página de Inicio (`/api/contenido-inicio`)
+
+- **`GET /api/contenido-inicio`** (`AllowAnonymous`): devuelve los textos e imágenes de portada, pasos ("Cómo funciona") y llamada a cotizar en Español e Inglés.
+- **`PUT /api/contenido-inicio`** (`Administrador,Superadministrador`): actualiza de forma atómica los parámetros `Inicio.*` en `Configuraciones`, registrando el cambio en `Bitacora`.
+
+### 3.4. Galería bilingüe (`/api/galeria`)
+
+- GET de lista y por identificador son públicos y muestran solo elementos activos. `incluirInactivos=true` únicamente surte efecto para Administrador y Superadministrador.
+- POST, PUT y DELETE requieren Administrador o Superadministrador. DELETE desactiva sin borrar la fila y devuelve 204; un identificador inexistente devuelve 404.
+- DTO: `id`, `titulo`, `tituloEn` (opcional/null), `imagenUrl`, `orden`, `activo`. Al guardar: título requerido de hasta 150 caracteres, título inglés de hasta 150, URL requerida de hasta 500 caracteres y absoluta HTTP/HTTPS, orden entre 0 y 1000. El título inglés se recorta y vacío se guarda como null.
+- La migración `GaleriaTituloEn` añade `TituloEn` nullable, nvarchar(150).
+- Administración en `/panel/galeria`; la galería pública muestra `tituloEn` en inglés y utiliza `titulo` cuando falta traducción.

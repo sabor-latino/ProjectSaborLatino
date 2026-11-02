@@ -4,13 +4,14 @@ import { ErrorApi } from '../api/cliente';
 import { useAuth } from '../auth/contexto';
 import { Acceso } from '../componentes/Acceso';
 import { Mensaje } from '../componentes/Estado';
+import { usePreferencias } from '../preferencias/PreferenciasContext';
 import { validacionAccesible } from '../utilidades/formularios';
 
-// Mismas reglas que exige la API: 8 caracteres, mayúscula, minúscula, número y símbolo
 const PATRON_CLAVE = '(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{8,}';
 
 export function Registro() {
   const { perfil, registrarse } = useAuth();
+  const { t } = usePreferencias();
   const navegar = useNavigate();
 
   const [datos, setDatos] = useState({ nombreCompleto: '', email: '', telefono: '', password: '', confirmar: '' });
@@ -34,7 +35,12 @@ export function Registro() {
     e.preventDefault();
 
     if (datos.password !== datos.confirmar) {
-      setErrores(['Las contraseñas no coinciden. Escríbala igual en los dos campos.']);
+      setErrores([
+        t(
+          'Las contraseñas no coinciden. Escríbala igual en los dos campos.',
+          'Passwords do not match. Please enter the same password in both fields.',
+        ),
+      ]);
       return;
     }
 
@@ -50,21 +56,30 @@ export function Registro() {
       });
       navegar('/mi-cuenta', { replace: true });
     } catch (err) {
-      setErrores(err instanceof ErrorApi ? err.mensajes : ['No se pudo crear la cuenta. Intente de nuevo.']);
+      setErrores(
+        err instanceof ErrorApi
+          ? err.mensajes
+          : [t('No se pudo crear la cuenta. Intente de nuevo.', 'Could not create the account. Please try again.')],
+      );
       setEnviando(false);
     }
   };
 
   return (
-    <Acceso frase="Inicie sesión antes de cotizar para guardar sus solicitudes y revisar sus cotizaciones.">
+    <Acceso
+      frase={t(
+        'Cree su cuenta antes de cotizar para guardar su historial de solicitudes, revisar sus cotizaciones y acumular beneficios de fidelidad.',
+        'Create your account before requesting a quote to save your request history, review proposals, and earn loyalty discounts.',
+      )}
+    >
       <form className="formulario formulario--plano" onSubmit={enviar}>
         <div className="encabezado encabezado--sin-margen">
-          <p className="antetitulo">Su cuenta</p>
-          <h1 className="titulo-seccion">Crear cuenta</h1>
+          <p className="antetitulo">{t('Su cuenta', 'Your account')}</p>
+          <h1 className="titulo-seccion">{t('Crear cuenta', 'Create account')}</h1>
         </div>
 
         <div className="campo">
-          <label htmlFor="nombre">Nombre completo</label>
+          <label htmlFor="nombre">{t('Nombre completo', 'Full name')}</label>
           <input
             id="nombre"
             name="nombreCompleto"
@@ -77,12 +92,12 @@ export function Registro() {
             onChange={(e) => cambiar('nombreCompleto', e.target.value)}
           />
           <p className="campo__error" id="nombre-error">
-            Escriba su nombre.
+            {t('Escriba su nombre completo.', 'Please enter your full name.')}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="email">Correo electrónico</label>
+          <label htmlFor="email">{t('Correo electrónico', 'Email address')}</label>
           <input
             id="email"
             name="email"
@@ -96,12 +111,12 @@ export function Registro() {
             onChange={(e) => cambiar('email', e.target.value)}
           />
           <p className="campo__error" id="email-error">
-            Escriba un correo válido.
+            {t('Escriba un correo electrónico válido.', 'Please enter a valid email address.')}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="telefono">Teléfono (opcional)</label>
+          <label htmlFor="telefono">{t('Teléfono (opcional)', 'Phone number (optional)')}</label>
           <input
             id="telefono"
             name="telefono"
@@ -114,10 +129,12 @@ export function Registro() {
         </div>
 
         <div className="campo">
-          <label htmlFor="password">Contraseña</label>
-          {/* Las reglas van arriba del campo para que el teclado del celular no las tape */}
+          <label htmlFor="password">{t('Contraseña', 'Password')}</label>
           <p id="reglas-clave" className="campo__ayuda">
-            Mínimo 8 caracteres, con mayúscula, minúscula, número y un símbolo (por ejemplo ! o #).
+            {t(
+              'Mínimo 8 caracteres, con mayúscula, minúscula, número y un símbolo (por ejemplo ! o #).',
+              'At least 8 characters, including uppercase, lowercase, number, and a symbol (e.g. ! or #).',
+            )}
           </p>
           <input
             id="password"
@@ -134,12 +151,12 @@ export function Registro() {
             onChange={(e) => cambiar('password', e.target.value)}
           />
           <p className="campo__error" id="password-error">
-            La contraseña no cumple las reglas de arriba.
+            {t('La contraseña no cumple las reglas indicadas arriba.', 'Password does not meet the requirements above.')}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="confirmar">Repita la contraseña</label>
+          <label htmlFor="confirmar">{t('Repita la contraseña', 'Confirm password')}</label>
           <input
             id="confirmar"
             name="confirmar"
@@ -162,13 +179,13 @@ export function Registro() {
         )}
 
         <button type="submit" className="boton boton--accion boton--ancho" disabled={enviando}>
-          {enviando ? 'Creando cuenta…' : 'Crear cuenta'}
+          {enviando ? t('Creando cuenta…', 'Creating account…') : t('Crear cuenta', 'Create account')}
         </button>
 
         <p className="centrado">
-          ¿Ya tiene cuenta?{' '}
+          {t('¿Ya tiene cuenta?', 'Already have an account?')}{' '}
           <Link to="/login" className="enlace">
-            Inicie sesión
+            {t('Inicie sesión', 'Sign in')}
           </Link>
         </p>
       </form>

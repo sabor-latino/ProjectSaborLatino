@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, ErrorApi, obtenerToken } from '../api/cliente';
-import type { Paquete, Perfil, Solicitud, SolicitudCrear } from '../api/tipos';
+import type { Paquete, Perfil, PromocionTemporada, Solicitud, SolicitudCrear } from '../api/tipos';
 import { useAuth } from '../auth/contexto';
 import { Mensaje } from '../componentes/Estado';
 import { IconoCheck } from '../componentes/Iconos';
 import { useDatos } from '../hooks/useDatos';
+import { usePreferencias } from '../preferencias/PreferenciasContext';
 import { ahoraParaInput, formatoColones, formatoFechaHora } from '../utilidades/formato';
 import { validacionAccesible } from '../utilidades/formularios';
 import { FOTO_COTIZAR } from '../utilidades/fotos';
 
-const TIPOS_EVENTO = ['Boda', 'Quince años', 'Cumpleaños', 'Fiesta de empresa', 'Graduación', 'Aniversario'];
+const TIPOS_EVENTO_ES = ['Boda', 'Quince años', 'Cumpleaños', 'Fiesta de empresa', 'Graduación', 'Aniversario'];
+const TIPOS_EVENTO_EN = ['Wedding', 'Sweet 15', 'Birthday', 'Corporate event', 'Graduation', 'Anniversary'];
 
 export function SolicitarCotizacion() {
   const { perfil, cargando } = useAuth();
+  const { t } = usePreferencias();
   const [enviada, setEnviada] = useState<Solicitud | null>(null);
 
   return (
@@ -21,23 +24,31 @@ export function SolicitarCotizacion() {
       <img className="banda__foto" src={FOTO_COTIZAR} alt="" width={1800} height={1200} />
       <div className="contenedor banda__grid">
         <div className="encabezado encabezado--sin-margen">
-          <p className="antetitulo">Solicitar cotización</p>
+          <p className="antetitulo">{t('Solicitar cotización', 'Request a quote')}</p>
           <h1 id="titulo-cotizar" className="titulo-seccion">
-            Cuéntenos de su evento
+            {t('Cuéntenos sobre su celebración', 'Tell us about your celebration')}
           </h1>
-          <p className="intro">Le enviamos una cotización en colones. Pedirla no tiene costo ni compromiso.</p>
+          <p className="intro">
+            {t(
+              'Le enviaremos una cotización formal en colones costarricenses con el desglose técnico completo. Solicitarla no tiene ningún costo ni compromiso.',
+              'We will send you a formal quote in Costa Rican colones with the full technical breakdown. Requesting it is free and without obligation.',
+            )}
+          </p>
           <ul className="ventajas">
             <li>
               <IconoCheck />
-              Precio claro con el equipo incluido
+              {t('Presupuesto claro con equipo de sonido e iluminación incluidos', 'Clear pricing with sound and lighting equipment included')}
             </li>
             <li>
               <IconoCheck />
-              Montaje y prueba de sonido antes de la fiesta
+              {t('Montaje anticipado y prueba acústica antes de iniciar el evento', 'Early setup and acoustic soundcheck before your event begins')}
             </li>
             <li>
               <IconoCheck />
-              Si tiene cuenta, la sigue desde “Mi cuenta”
+              {t(
+                'Atención directa y propuesta formal enviada a su correo electrónico',
+                'Direct assistance and formal quote sent to your email address',
+              )}
             </li>
           </ul>
         </div>
@@ -45,8 +56,6 @@ export function SolicitarCotizacion() {
         {enviada ? (
           <SolicitudEnviada solicitud={enviada} alReiniciar={() => setEnviada(null)} />
         ) : (
-          // La "key" vuelve a crear el formulario cuando termina de cargar la sesión,
-          // así se rellenan los datos del cliente que inició sesión
           !cargando && <FormularioSolicitud key={perfil?.id ?? 'visitante'} perfil={perfil} alEnviar={setEnviada} />
         )}
       </div>
@@ -55,9 +64,9 @@ export function SolicitarCotizacion() {
 }
 
 function SolicitudEnviada({ solicitud, alReiniciar }: { solicitud: Solicitud; alReiniciar: () => void }) {
+  const { t } = usePreferencias();
   const titulo = useRef<HTMLHeadingElement>(null);
 
-  // Lleva el foco al mensaje para que los lectores de pantalla lo anuncien
   useEffect(() => {
     titulo.current?.focus();
   }, []);
@@ -66,19 +75,20 @@ function SolicitudEnviada({ solicitud, alReiniciar }: { solicitud: Solicitud; al
     <div className="formulario">
       <Mensaje tipo="exito">
         <h2 ref={titulo} tabIndex={-1} className="mensaje__titulo">
-          ¡Recibimos su solicitud!
+          {t('¡Recibimos su solicitud!', 'We received your request!')}
         </h2>
         <p>
-          Solicitud #{solicitud.id} para el {formatoFechaHora(solicitud.fechaEvento)} en {solicitud.lugar}. Le
-          escribiremos a <strong>{solicitud.correoContacto}</strong> con la cotización.
+          {t('Solicitud', 'Request')} #{solicitud.id} ({formatoFechaHora(solicitud.fechaEvento)} · {solicitud.lugar}).{' '}
+          {t('Le enviaremos la propuesta formal a', 'We will send your formal quote to')}{' '}
+          <strong>{solicitud.correoContacto}</strong>.
         </p>
       </Mensaje>
       <div className="acciones">
         <button type="button" className="boton boton--accion" onClick={alReiniciar}>
-          Enviar otra solicitud
+          {t('Enviar otra solicitud', 'Submit another request')}
         </button>
         <Link to="/paquetes" className="boton boton--borde">
-          Ver paquetes
+          {t('Ver paquetes', 'View packages')}
         </Link>
       </div>
     </div>
@@ -91,10 +101,14 @@ interface PropsFormulario {
 }
 
 function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
+  const { idioma, t } = usePreferencias();
   const [parametros] = useSearchParams();
   const paquetes = useDatos<Paquete[]>('/api/paquetes');
+  const promociones = useDatos<PromocionTemporada[]>('/api/promociones');
   const [minimo] = useState(ahoraParaInput);
   const cajaErrores = useRef<HTMLDivElement>(null);
+
+  const promocionParamId = parametros.get('promocion');
 
   const [datos, setDatos] = useState({
     nombreContacto: perfil?.nombreCompleto ?? '',
@@ -110,21 +124,44 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
   const [enviando, setEnviando] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
 
-  // Si la API rechaza el envío, el foco va a la lista de errores
   useEffect(() => {
     if (errores.length > 0) {
       cajaErrores.current?.focus();
     }
   }, [errores]);
 
+  const listaPromos = Array.isArray(promociones.datos)
+    ? promociones.datos.filter((pr) => pr.activo && pr.vigente !== false)
+    : [];
+
+  const promoAplicable = (() => {
+    if (promocionParamId) {
+      const porUrl = listaPromos.find((pr) => String(pr.id) === promocionParamId);
+      if (porUrl) return porUrl;
+    }
+    if (datos.paqueteId) {
+      const pkId = Number(datos.paqueteId);
+      return listaPromos.find((pr) => pr.paquetes?.some((pk) => pk.paqueteId === pkId));
+    }
+    return undefined;
+  })();
+
   const cambiar = (campo: keyof typeof datos, valor: string) => setDatos((d) => ({ ...d, [campo]: valor }));
 
-  // Solo se ejecuta si el navegador ya validó los campos (required, type="email", min…).
-  // Si falta algo, el navegador lleva el foco al primer campo con error.
   const enviar = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setEnviando(true);
     setErrores([]);
+
+    let comentariosFinales = datos.comentarios.trim();
+    if (promoAplicable) {
+      const notaPromo = `[Promoción de temporada: ${promoAplicable.nombre} (-${promoAplicable.porcentajeDescuento}%)${
+        promoAplicable.codigoPromocional ? ` · Código: ${promoAplicable.codigoPromocional}` : ''
+      }]`;
+      if (!comentariosFinales.includes('[Promoción de temporada:')) {
+        comentariosFinales = comentariosFinales ? `${notaPromo} ${comentariosFinales}` : notaPromo;
+      }
+    }
 
     const cuerpo: SolicitudCrear = {
       nombreContacto: datos.nombreContacto.trim(),
@@ -135,32 +172,61 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
       fechaEvento: datos.fechaEvento,
       lugar: datos.lugar.trim(),
       cantidadInvitados: datos.cantidadInvitados ? Number(datos.cantidadInvitados) : undefined,
-      comentarios: datos.comentarios.trim() || undefined,
+      comentarios: comentariosFinales || undefined,
     };
 
     try {
-      // Si había una sesión pero el token venció, no enviar la solicitud como visitante anónimo.
       if (perfil && !obtenerToken()) {
         throw new ErrorApi(401, [
-          'Su sesión venció. Inicie sesión nuevamente antes de enviar la solicitud para guardarla en su cuenta.',
+          t(
+            'Su sesión venció. Inicie sesión nuevamente antes de enviar la solicitud para guardarla en su cuenta.',
+            'Your session has expired. Please sign in again before submitting so the request is saved to your account.',
+          ),
         ]);
       }
 
-      // Si hay sesión, el cliente de la API manda el token y la solicitud queda en la cuenta
       alEnviar(await api.post<Solicitud>('/api/solicitudes', cuerpo));
     } catch (error) {
-      setErrores(error instanceof ErrorApi ? error.mensajes : ['No se pudo enviar la solicitud. Intente de nuevo.']);
+      setErrores(
+        error instanceof ErrorApi
+          ? error.mensajes
+          : [t('No se pudo enviar la solicitud. Intente de nuevo.', 'Could not submit the request. Please try again.')],
+      );
       setEnviando(false);
     }
   };
 
+  const listaPaquetes = Array.isArray(paquetes.datos) ? paquetes.datos : [];
+  const tiposEvento = idioma === 'en' ? TIPOS_EVENTO_EN : TIPOS_EVENTO_ES;
+
   return (
     <form className="formulario" onSubmit={enviar}>
-      <h2 className="formulario__titulo">Datos del evento</h2>
-      {perfil && <Mensaje>Está enviando la solicitud con su cuenta; la podrá seguir desde “Mi cuenta”.</Mensaje>}
+      <h2 className="formulario__titulo">{t('Datos del evento', 'Event details')}</h2>
+      {perfil && (
+        <Mensaje>
+          {t(
+            'Está enviando la solicitud con su cuenta; podrá darle seguimiento desde “Mi cuenta”.',
+            'You are submitting this request with your account; you can track it in “My account”.',
+          )}
+        </Mensaje>
+      )}
+
+      {promoAplicable && (
+        <Mensaje tipo="exito">
+          <strong>
+            {idioma === 'en' && promoAplicable.nombreEn ? promoAplicable.nombreEn : promoAplicable.nombre} (-
+            {promoAplicable.porcentajeDescuento}%)
+          </strong>
+          {promoAplicable.codigoPromocional ? ` · ${t('Código:', 'Code:')} ${promoAplicable.codigoPromocional}` : ''} —{' '}
+          {t(
+            'Esta promoción de temporada se incluirá automáticamente en su solicitud de cotización.',
+            'This seasonal promotion will be automatically included in your quote request.',
+          )}
+        </Mensaje>
+      )}
 
       <div className="campo">
-        <label htmlFor="nombre">Nombre completo</label>
+        <label htmlFor="nombre">{t('Nombre completo', 'Full name')}</label>
         <input
           id="nombre"
           name="nombreContacto"
@@ -173,13 +239,13 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
           onChange={(e) => cambiar('nombreContacto', e.target.value)}
         />
         <p className="campo__error" id="nombre-error">
-          Escriba su nombre.
+          {t('Escriba su nombre completo.', 'Please enter your full name.')}
         </p>
       </div>
 
       <div className="fila">
         <div className="campo">
-          <label htmlFor="correo">Correo electrónico</label>
+          <label htmlFor="correo">{t('Correo electrónico', 'Email address')}</label>
           <input
             id="correo"
             name="correoContacto"
@@ -194,12 +260,15 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
             onChange={(e) => cambiar('correoContacto', e.target.value)}
           />
           <p className="campo__error" id="correo-error">
-            Escriba un correo válido, por ejemplo nombre@correo.com.
+            {t(
+              'Escriba un correo electrónico válido, por ejemplo nombre@correo.com.',
+              'Enter a valid email address, for example name@domain.com.',
+            )}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="telefono">Teléfono (opcional)</label>
+          <label htmlFor="telefono">{t('Teléfono (opcional)', 'Phone number (optional)')}</label>
           <input
             id="telefono"
             name="telefonoContacto"
@@ -214,25 +283,28 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
       </div>
 
       <div className="campo">
-        <label htmlFor="paquete">Paquete que le interesa</label>
+        <label htmlFor="paquete">{t('Paquete que le interesa', 'Package of interest')}</label>
         <select
           id="paquete"
           name="paqueteId"
           value={datos.paqueteId}
           onChange={(e) => cambiar('paqueteId', e.target.value)}
         >
-          <option value="">Todavía no sé / quiero asesoría</option>
-          {paquetes.datos?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nombre} — desde {formatoColones(p.precioBase)}
-            </option>
-          ))}
+          <option value="">{t('Todavía no sé / deseo asesoría técnica', 'Not sure yet / I would like advice')}</option>
+          {listaPaquetes.map((p) => {
+            const nombrePk = idioma === 'en' && p.nombreEn ? p.nombreEn : p.nombre;
+            return (
+              <option key={p.id} value={p.id}>
+                {nombrePk} — {t('desde', 'from')} {formatoColones(p.precioBase)}
+              </option>
+            );
+          })}
         </select>
       </div>
 
       <div className="fila">
         <div className="campo">
-          <label htmlFor="tipo">Tipo de evento</label>
+          <label htmlFor="tipo">{t('Tipo de evento', 'Event type')}</label>
           <input
             id="tipo"
             name="tipoEvento"
@@ -240,24 +312,24 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
             maxLength={100}
             list="tipos-evento"
             autoComplete="off"
-            placeholder="Boda, quince años…"
+            placeholder={t('Boda, quince años, corporativo…', 'Wedding, sweet 15, corporate…')}
             aria-errormessage="tipo-error"
             {...validacionAccesible}
             value={datos.tipoEvento}
             onChange={(e) => cambiar('tipoEvento', e.target.value)}
           />
           <datalist id="tipos-evento">
-            {TIPOS_EVENTO.map((t) => (
-              <option key={t} value={t} />
+            {tiposEvento.map((tipo) => (
+              <option key={tipo} value={tipo} />
             ))}
           </datalist>
           <p className="campo__error" id="tipo-error">
-            Indique el tipo de evento.
+            {t('Indique el tipo de evento.', 'Please specify the event type.')}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="fecha">Fecha y hora</label>
+          <label htmlFor="fecha">{t('Fecha y hora', 'Date and time')}</label>
           <input
             id="fecha"
             name="fechaEvento"
@@ -270,33 +342,33 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
             onChange={(e) => cambiar('fechaEvento', e.target.value)}
           />
           <p className="campo__error" id="fecha-error">
-            Elija una fecha futura.
+            {t('Seleccione una fecha futura.', 'Please choose a future date.')}
           </p>
         </div>
       </div>
 
       <div className="fila">
         <div className="campo">
-          <label htmlFor="lugar">Lugar</label>
+          <label htmlFor="lugar">{t('Lugar del evento', 'Event venue / location')}</label>
           <input
             id="lugar"
             name="lugar"
             required
             maxLength={300}
             autoComplete="off"
-            placeholder="Salón comunal, Heredia…"
+            placeholder={t('Salón de eventos, hotel o residencia, provincia…', 'Event hall, hotel or residence, province…')}
             aria-errormessage="lugar-error"
             {...validacionAccesible}
             value={datos.lugar}
             onChange={(e) => cambiar('lugar', e.target.value)}
           />
           <p className="campo__error" id="lugar-error">
-            Indique dónde será el evento.
+            {t('Indique dónde se realizará el evento.', 'Please enter the event location.')}
           </p>
         </div>
 
         <div className="campo">
-          <label htmlFor="invitados">Invitados (opcional)</label>
+          <label htmlFor="invitados">{t('Cantidad estimada de invitados (opcional)', 'Estimated guests (optional)')}</label>
           <input
             id="invitados"
             name="cantidadInvitados"
@@ -311,20 +383,23 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
             onChange={(e) => cambiar('cantidadInvitados', e.target.value)}
           />
           <p className="campo__error" id="invitados-error">
-            Debe ser un número mayor que 0.
+            {t('Debe ser un número mayor que 0.', 'Must be a number greater than 0.')}
           </p>
         </div>
       </div>
 
       <div className="campo">
-        <label htmlFor="comentarios">Comentarios (opcional)</label>
+        <label htmlFor="comentarios">{t('Comentarios o requerimientos especiales (opcional)', 'Comments or special requirements (optional)')}</label>
         <textarea
           id="comentarios"
           name="comentarios"
           rows={4}
           maxLength={2000}
           autoComplete="off"
-          placeholder="Canciones especiales, horario de montaje, lo que debamos saber…"
+          placeholder={t(
+            'Géneros musicales preferidos, horario de montaje, condiciones del salón o detalles importantes…',
+            'Preferred music genres, setup schedule, venue conditions, or important details…',
+          )}
           value={datos.comentarios}
           onChange={(e) => cambiar('comentarios', e.target.value)}
         />
@@ -341,7 +416,7 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
       )}
 
       <button type="submit" className="boton boton--accion boton--ancho" disabled={enviando}>
-        {enviando ? 'Enviando…' : 'Enviar solicitud'}
+        {enviando ? t('Enviando…', 'Submitting…') : t('Enviar solicitud', 'Submit quote request')}
       </button>
     </form>
   );

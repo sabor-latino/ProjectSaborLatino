@@ -22,7 +22,6 @@ export function Solicitudes() {
   const [accion, setAccion] = useState<Accion>(null);
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
 
-  // Acciones de un clic (aceptar, rechazar, cancelar) con confirmación
   const ejecutar = async (
     pregunta: string,
     llamada: () => Promise<unknown>,
@@ -36,8 +35,6 @@ export function Solicitudes() {
       recargar();
     } catch (e) {
       setAviso({ tipo: 'error', texto: e instanceof Error ? e.message : 'No se pudo completar la acción.' });
-      // Al aceptar una cotización vencida, el backend persiste el estado "Vencida"
-      // aunque responda 400; recargar para reflejar ese cambio en pantalla.
       if (recargarSiFalla) recargar();
     }
   };
@@ -97,7 +94,7 @@ export function Solicitudes() {
                       {s.telefonoContacto && ` · ${s.telefonoContacto}`}
                     </dd>
                     <dt>Paquete</dt>
-                    <dd>{s.paqueteNombre ?? 'Sin paquete (quiere asesoría)'}</dd>
+                    <dd>{s.paqueteNombre ?? 'Sin paquete (solicita asesoría)'}</dd>
                     <dt>Invitados</dt>
                     <dd>{s.cantidadInvitados ?? '—'}</dd>
                     <dt>Cuenta</dt>
@@ -243,7 +240,6 @@ export function Solicitudes() {
 }
 
 function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTerminar: () => void }) {
-  // La API sugiere el descuento de fidelidad si el cliente ya tiene suficientes eventos
   const fidelidad = useDatos<Fidelidad>(`/api/solicitudes/${solicitud.id}/fidelidad`);
   const [monto, setMonto] = useState('');
   const [descuento, setDescuento] = useState('');
@@ -251,9 +247,12 @@ function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTe
   const [vigente, setVigente] = useState('');
   const f = fidelidad.datos;
 
+  const tienePromo = Boolean(f?.promocionTemporadaNombre && (f.porcentajePromocionTemporada ?? 0) > 0);
+  const mejorDescuento = Math.max(f?.descuentoSugerido ?? 0, f?.descuentoPromocionSugerido ?? 0);
+
   const usarSugerencia = () => {
     if (f?.precioBase) setMonto(String(f.precioBase));
-    if (f?.descuentoSugerido) setDescuento(String(f.descuentoSugerido));
+    if (mejorDescuento > 0) setDescuento(String(mejorDescuento));
   };
 
   return (
@@ -275,15 +274,24 @@ function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTe
       </p>
 
       {f && (
-        <Mensaje tipo={f.aplica ? 'exito' : 'info'}>
-          {f.aplica
-            ? `Cliente frecuente: tiene ${f.eventosFinalizados} eventos y le corresponde ${f.porcentajeDescuento}% de descuento.`
-            : `Fidelidad: ${f.eventosFinalizados} de ${f.eventosMinimos} eventos para el ${f.porcentajeDescuento}% de descuento.`}
+        <Mensaje tipo={f.aplica || tienePromo ? 'exito' : 'info'}>
+          <p>
+            {f.aplica
+              ? `Cliente frecuente: tiene ${f.eventosFinalizados} eventos y le corresponde ${f.porcentajeDescuento}% de descuento.`
+              : `Fidelidad: ${f.eventosFinalizados} de ${f.eventosMinimos} eventos para el ${f.porcentajeDescuento}% de descuento.`}
+          </p>
+          {tienePromo && (
+            <p>
+              <strong>Promoción de temporada aplicable:</strong> {f.promocionTemporadaNombre} (-
+              {f.porcentajePromocionTemporada}%)
+              {f.descuentoPromocionSugerido ? ` · ahorro sugerido de ${formatoColones(f.descuentoPromocionSugerido)}` : ''}.
+            </p>
+          )}
           {f.precioBase !== null && (
             <p>
               <button type="button" className="enlace boton-enlace" onClick={usarSugerencia}>
                 Usar precio del paquete ({formatoColones(f.precioBase)})
-                {f.aplica && f.descuentoSugerido ? ` y descuento de ${formatoColones(f.descuentoSugerido)}` : ''}
+                {mejorDescuento > 0 ? ` y descuento de ${formatoColones(mejorDescuento)}` : ''}
               </button>
             </p>
           )}
