@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Sistema;
@@ -11,6 +11,7 @@ public interface IUsuarioService
     Task<List<UsuarioDto>> ObtenerTodosAsync(string? rol, bool incluirInactivos, bool actorEsSuper);
     Task<UsuarioDto?> ObtenerPorIdAsync(string id, bool actorEsSuper);
     Task<UsuarioDto> CrearAsync(UsuarioCrearDto dto, string actorId, bool actorEsSuper);
+    Task<UsuarioDto?> ModificarPerfilAsync(string id, UsuarioModificarPerfilDto dto, string usuarioEditorId, bool esSuper);
     Task<UsuarioDto?> CambiarRolAsync(string id, string rol, string actorId, bool actorEsSuper);
     Task<UsuarioDto?> CambiarActivoAsync(string id, bool activo, string actorId, bool actorEsSuper);
 }
@@ -93,6 +94,33 @@ public class UsuarioService : IUsuarioService
 
         await _userManager.AddToRoleAsync(usuario, rol);
         await _bitacora.RegistrarAsync(actorId, "Crear", "Usuario", usuario.Id, $"{usuario.Email} con rol {rol}");
+
+        return ADto(usuario, rol);
+    }
+
+    public async Task<UsuarioDto?> ModificarPerfilAsync(string id, UsuarioModificarPerfilDto dto, string usuarioEditorId, bool esSuper)
+    {
+        var (usuario, rol) = await BuscarEnAlcanceAsync(id, esSuper);
+        if (usuario is null)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.NombreCompleto))
+        {
+            throw new DatosInvalidosException("El nombre completo es obligatorio.");
+        }
+
+        usuario.NombreCompleto = dto.NombreCompleto.Trim();
+        usuario.PhoneNumber = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono.Trim();
+
+        var resultado = await _userManager.UpdateAsync(usuario);
+        if (!resultado.Succeeded)
+        {
+            throw new DatosInvalidosException(string.Join(" ", resultado.Errors.Select(e => e.Description)));
+        }
+
+        await _bitacora.RegistrarAsync(usuarioEditorId, "ModificarPerfil", "Usuario", usuario.Id, $"{usuario.Email}: {usuario.NombreCompleto}");
 
         return ADto(usuario, rol);
     }

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProjectSaborLatino.DTOs.Sistema;
@@ -51,6 +51,22 @@ public class UsuariosController : ControllerBase
         {
             var creado = await _service.CrearAsync(dto, UsuarioId(), EsSuper());
             return CreatedAtAction(nameof(ObtenerPorId), new { id = creado.Id }, creado);
+        }
+        catch (DatosInvalidosException ex)
+        {
+            return DatosInvalidos(ex);
+        }
+    }
+
+    // PUT api/usuarios/{id} o PUT api/usuarios/{id}/perfil
+    [HttpPut("{id}")]
+    [HttpPut("{id}/perfil")]
+    public async Task<ActionResult<UsuarioDto>> ModificarPerfil(string id, UsuarioModificarPerfilDto dto)
+    {
+        try
+        {
+            var actualizado = await _service.ModificarPerfilAsync(id, dto, UsuarioId(), EsSuper());
+            return actualizado is null ? NotFound() : actualizado;
         }
         catch (DatosInvalidosException ex)
         {

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Catalogo;
 using ProjectSaborLatino.Models;
@@ -100,7 +100,10 @@ public class EquipoService : IEquipoService
     private static void CopiarDatos(EquipoGuardarDto dto, Equipo entidad)
     {
         entidad.Nombre = dto.Nombre;
+        entidad.NombreEn = dto.NombreEn;
         entidad.Tipo = dto.Tipo;
+        entidad.EspecificacionTecnica = dto.EspecificacionTecnica;
+        entidad.EspecificacionTecnicaEn = dto.EspecificacionTecnicaEn;
         entidad.CantidadTotal = dto.CantidadTotal;
         entidad.Activo = dto.Activo;
     }
@@ -109,7 +112,10 @@ public class EquipoService : IEquipoService
     {
         Id = x.Id,
         Nombre = x.Nombre,
+        NombreEn = x.NombreEn,
         Tipo = x.Tipo,
+        EspecificacionTecnica = x.EspecificacionTecnica,
+        EspecificacionTecnicaEn = x.EspecificacionTecnicaEn,
         CantidadTotal = x.CantidadTotal,
         Activo = x.Activo
     };

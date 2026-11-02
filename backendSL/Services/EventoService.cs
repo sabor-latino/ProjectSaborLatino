@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Eventos;
 using ProjectSaborLatino.Models;
@@ -28,6 +28,7 @@ internal static class ReservaLocks
 public interface IEventoService
 {
     Task<EventoDto> CrearAsync(EventoCrearDto dto, string usuarioId);
+    Task<EventoDto?> ModificarAsync(int id, EventoModificarDto dto, string usuarioId);
     Task<List<EventoDto>> ObtenerTodosAsync(DateTime? desde, DateTime? hasta, string? estado, string? clienteId, int? paqueteId);
     Task<EventoDto?> ObtenerPorIdAsync(int id, string? soloDelClienteId, string? soloDelTrabajadorUsuarioId);
     Task<List<EventoDto>> ObtenerDeClienteAsync(string clienteUsuarioId);
@@ -132,6 +133,75 @@ public class EventoService : IEventoService
         await transaction.CommitAsync();
 
         return (await ObtenerPorIdAsync(evento.Id, null, null))!;
+    }
+
+    public async Task<EventoDto?> ModificarAsync(int id, EventoModificarDto dto, string usuarioId)
+    {
+        _ = usuarioId;
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await ReservaLocks.TomarAsync(_db, [$"evento:{id}"]);
+
+        var evento = await _db.Eventos
+            .Include(e => e.Equipos)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (evento is null)
+        {
+            return null;
+        }
+
+        if (evento.Estado is EstadoEvento.Finalizado or EstadoEvento.Cancelado)
+        {
+            throw new DatosInvalidosException($"El evento está {evento.Estado} y ya no se puede modificar.");
+        }
+
+        var inicio = dto.FechaInicio ?? evento.FechaInicio;
+        var fin = dto.FechaFin ?? evento.FechaFin;
+
+        if (fin <= inicio)
+        {
+            throw new DatosInvalidosException("La fecha de fin debe ser posterior a la de inicio.");
+        }
+
+        if (inicio < DateTime.UtcNow.AddHours(-1))
+        {
+            throw new DatosInvalidosException("La fecha de inicio no puede ser anterior a la actual.");
+        }
+
+        var cambiaronFechas = inicio != evento.FechaInicio || fin != evento.FechaFin;
+        if (cambiaronFechas && evento.Equipos.Count > 0)
+        {
+            var pedidos = evento.Equipos.Select(ee => new EventoEquipoAsignarDto
+            {
+                EquipoId = ee.EquipoId,
+                Cantidad = ee.Cantidad
+            }).ToList();
+
+            await ReservaLocks.TomarAsync(_db, pedidos.Select(e => $"equipo:{e.EquipoId}"));
+            await ValidarDisponibilidadAsync(pedidos, inicio, fin, excluirEventoId: id);
+        }
+
+        evento.FechaInicio = inicio;
+        evento.FechaFin = fin;
+
+        if (dto.Lugar is not null)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Lugar))
+            {
+                throw new DatosInvalidosException("El lugar no puede estar vacío.");
+            }
+            evento.Lugar = dto.Lugar.Trim();
+        }
+
+        if (dto.Notas is not null)
+        {
+            evento.Notas = dto.Notas;
+        }
+
+        await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return await ObtenerPorIdAsync(id, null, null);
     }
 
     // Para el admin. Todos los filtros son opcionales; desde/hasta traen los eventos que caen en ese rango
@@ -366,8 +436,10 @@ public class EventoService : IEventoService
             throw new DatosInvalidosException($"Desde {evento.Estado} solo se puede pasar a {siguiente}.");
         }
 
+        await using var transaction = await _db.Database.BeginTransactionAsync();
         RegistrarCambio(evento, nuevo, usuarioId, dto.Comentario);
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return await ObtenerPorIdAsync(id, null, null);
     }

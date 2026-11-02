@@ -20,6 +20,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PaqueteEquipo> PaquetesEquipos => Set<PaqueteEquipo>();
     public DbSet<ImagenGaleria> ImagenesGaleria => Set<ImagenGaleria>();
     public DbSet<PreguntaFrecuente> PreguntasFrecuentes => Set<PreguntaFrecuente>();
+    public DbSet<PromocionTemporada> PromocionesTemporada => Set<PromocionTemporada>();
+    public DbSet<PromocionTemporadaPaquete> PromocionesTemporadaPaquetes => Set<PromocionTemporadaPaquete>();
 
     // =============== Solicitudes y cotizaciones (Fase 2) ===============
 
@@ -43,6 +45,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         // Identity necesita configurar sus propias tablas primero
         base.OnModelCreating(builder);
+
+        builder.Entity<PromocionTemporadaPaquete>(e =>
+        {
+            e.HasIndex(x => new { x.PromocionTemporadaId, x.PaqueteId }).IsUnique();
+
+            e.HasOne(x => x.PromocionTemporada)
+                .WithMany(p => p.Paquetes)
+                .HasForeignKey(x => x.PromocionTemporadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.Paquete)
+                .WithMany()
+                .HasForeignKey(x => x.PaqueteId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         builder.Entity<Solicitud>(e =>
         {

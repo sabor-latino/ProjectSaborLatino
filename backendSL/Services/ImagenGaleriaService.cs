@@ -82,6 +82,7 @@ public class ImagenGaleriaService : IImagenGaleriaService
     private static void CopiarDatos(ImagenGaleriaGuardarDto dto, ImagenGaleria entidad)
     {
         entidad.Titulo = dto.Titulo;
+        entidad.TituloEn = string.IsNullOrWhiteSpace(dto.TituloEn) ? null : dto.TituloEn.Trim();
         entidad.ImagenUrl = dto.ImagenUrl;
         entidad.Orden = dto.Orden;
         entidad.Activo = dto.Activo;
@@ -91,6 +92,7 @@ public class ImagenGaleriaService : IImagenGaleriaService
     {
         Id = x.Id,
         Titulo = x.Titulo,
+        TituloEn = x.TituloEn,
         ImagenUrl = x.ImagenUrl,
         Orden = x.Orden,
         Activo = x.Activo

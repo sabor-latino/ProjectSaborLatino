@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Catalogo;
 using ProjectSaborLatino.Models;
@@ -82,7 +82,9 @@ public class PreguntaFrecuenteService : IPreguntaFrecuenteService
     private static void CopiarDatos(PreguntaFrecuenteGuardarDto dto, PreguntaFrecuente entidad)
     {
         entidad.Pregunta = dto.Pregunta;
+        entidad.PreguntaEn = dto.PreguntaEn;
         entidad.Respuesta = dto.Respuesta;
+        entidad.RespuestaEn = dto.RespuestaEn;
         entidad.Orden = dto.Orden;
         entidad.Activo = dto.Activo;
     }
@@ -91,7 +93,9 @@ public class PreguntaFrecuenteService : IPreguntaFrecuenteService
     {
         Id = x.Id,
         Pregunta = x.Pregunta,
+        PreguntaEn = x.PreguntaEn,
         Respuesta = x.Respuesta,
+        RespuestaEn = x.RespuestaEn,
         Orden = x.Orden,
         Activo = x.Activo
     };
