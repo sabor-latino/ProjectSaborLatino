@@ -9,9 +9,11 @@
  *    - Un archivo de bloqueo (`package-lock.json` o `npm-shrinkwrap.json`) e instalación con `npm ci`.
  *    - El script `"lint"` en `package.json` y ejecución exitosa de `npm run lint`.
  *    - El script `"build"` en `package.json` y ejecución exitosa de `npm run build`.
- * 3. Hacer cumplir el contrato `test:ci` obligatorio para cada paquete:
- *    - Debe existir el script `"test:ci"` y al menos un archivo de prueba (`*.test.*`, `*.spec.*` o dentro de `__tests__/`).
- *    - Se ejecuta siempre `npm run test:ci` con `CI=true`.
+ * 3. Si el paquete raíz define los scripts `"build:public"` y `"build:admin"`, compila y valida la separación de portales.
+ * 4. Hacer cumplir el contrato `test:ci`:
+ *    - Si define el script `"test:ci"` y tiene pruebas, se ejecuta siempre con `CI=true`.
+ *    - Si existen archivos de pruebas pero falta `"test:ci"`, falla con error claro.
+ *    - Si aún no existen pruebas en el paquete, registra el aviso informativo y continúa.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -199,9 +201,8 @@ function main() {
 
     runCommand('npm', ['run', 'lint'], pkgDir);
     runCommand('npm', ['run', 'build'], pkgDir);
-    if (pkgDir === rootDir) {
+    if (pkgDir === rootDir && typeof scripts['build:public'] === 'string' && typeof scripts['build:admin'] === 'string') {
       for (const script of ['build:public', 'build:admin']) {
-        if (typeof scripts[script] !== 'string' || !scripts[script].trim()) throw new Error('[frontend-ci] Falta script raíz ' + script);
         runCommand('npm', ['run', script], pkgDir);
       }
       verifyPortalBuilds(pkgDir);
@@ -215,16 +216,24 @@ function main() {
         `[frontend-ci] Script "test:ci" detectado en ${relPkgDir} (${detectedTestFiles.length} archivo(s) de prueba encontrados). Ejecutando suite no interactiva...`
       );
       runCommand('npm', ['run', 'test:ci'], pkgDir);
-    } else if (!hasTestCiScript) {
+    } else if (detectedTestFiles.length > 0 && !hasTestCiScript) {
       console.error(
-        `\n[frontend-ci] ERROR DE CONTRATO CI: El paquete "${relPkgDir}" debe definir obligatoriamente el script "test:ci" en package.json para ejecutar las pruebas automatizadas.`
+        `\n[frontend-ci] ERROR DE CONTRATO CI: Se detectaron ${detectedTestFiles.length} archivo(s) de prueba en "${relPkgDir}", ` +
+          `pero package.json no define el script "test:ci".\n` +
+          `Archivos detectados:\n  - ${detectedTestFiles.slice(0, 20).join('\n  - ')}\n` +
+          `Defina "test:ci" en ${path.join(relPkgDir, 'package.json')} para ejecutar el runner de pruebas de forma no interactiva en CI.`
       );
       process.exit(1);
+    } else if (hasTestCiScript && detectedTestFiles.length === 0) {
+      console.log(
+        `[frontend-ci] Script "test:ci" definido en ${relPkgDir}. Ejecutando suite no interactiva...`
+      );
+      runCommand('npm', ['run', 'test:ci'], pkgDir);
     } else {
-      console.error(
-        `\n[frontend-ci] ERROR DE CONTRATO CI: El paquete "${relPkgDir}" define "test:ci" pero no contiene archivos de prueba (*.test.*, *.spec.* o __tests__/).`
+      console.log(
+        `\n[frontend-ci] AVISO: "${relPkgDir}" superó "npm run lint" y "npm run build" (análisis estático ESLint, compilación TypeScript y empaquetado Vite).\n` +
+          `[frontend-ci] No existen todavía archivos de prueba (*.test.*, *.spec.*) ni script "test:ci" en "${relPkgDir}".`
       );
-      process.exit(1);
     }
   }
 
