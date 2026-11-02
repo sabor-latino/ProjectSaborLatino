@@ -1,0 +1,104 @@
+name: Deploy Azure API
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: azure-api-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      AZURE_CLIENT_ID: a5f82035-eceb-496c-9f05-b9ca49173b83
+      AZURE_TENANT_ID: f6f7a71d-15d6-4e04-8f93-607826b3b8fc
+      AZURE_SUBSCRIPTION_ID: 8dde8f3e-2367-4342-941e-e5cc7b49eca2
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+      - name: Verify exact main revision and successful CI
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const {data: branch} = await github.rest.repos.getBranch({...context.repo, branch: 'main'});
+            if (branch.commit.sha !== process.env.DEPLOY_SHA) {
+              throw new Error('Refusing to deploy an outdated main revision');
+            }
+            const {data: runs} = await github.rest.actions.listWorkflowRuns({
+              ...context.repo, workflow_id: 'ci.yml', head_sha: process.env.DEPLOY_SHA, event: 'push', per_page: 100
+            });
+            if (!runs.workflow_runs.some(run => run.conclusion === 'success')) {
+              throw new Error('Successful CI on this exact main revision is required');
+            }
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish API
+        run: dotnet publish backendSL/ProjectSaborLatino.csproj --configuration Release --output publish -warnaserror
+      - name: Require reviewed Azure SQL schema baseline
+        # Baseline: eight Azure SQL migrations applied from 2d8dab3e485a05077320e396b58702c1a8abb7af.
+        # Any migration or snapshot change requires applying/reviewing SQL separately and updating this hash.
+        shell: python
+        run: |
+          import hashlib
+          from pathlib import Path
+          root = Path('.')
+          digest = hashlib.sha256()
+          paths = sorted((root / 'backendSL/Migrations').glob('*.cs'))
+          for path in paths:
+              digest.update(path.as_posix().encode() + b'\0')
+              content = path.read_text(encoding='utf-8-sig').replace('\r\n', '\n').replace('\r', '\n')
+              digest.update(content.encode() + b'\0')
+          expected = '3cc2085bc01e225b3f8659d58c4482c34657aa1848626e1f46cdbd58ba37fe8a'
+          if digest.hexdigest() != expected:
+              raise SystemExit('Azure SQL migration baseline changed. Apply/review the production migration separately and update this baseline before deploying. Never use personal LocalDB.')
+      - uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
+        with:
+          app-name: saborlatino-api-8dde8f3e
+          package: publish
+      - name: Verify public API and CORS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for endpoint in servicios paquetes galeria promociones; do
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 10 --max-time 45 \
+              -H 'Origin: https://sabor-latino-seven.vercel.app' \
+              -D headers.txt -o /dev/null "https://saborlatino-api-8dde8f3e.azurewebsites.net/api/$endpoint"
+            grep -qi '^access-control-allow-origin: https://sabor-latino-seven.vercel.app' headers.txt
+          done
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 10 --max-time 45 \
+            -H 'Origin: https://sabor-latino-admin.vercel.app' \
+            -D headers-admin.txt -o /dev/null 'https://saborlatino-api-8dde8f3e.azurewebsites.net/api/galeria'
+          grep -qi '^access-control-allow-origin: https://sabor-latino-admin.vercel.app' headers-admin.txt
+          for origin in https://sabor-latino-seven.vercel.app https://sabor-latino-admin.vercel.app; do
+            status=$(curl --silent --show-error --retry 5 --retry-all-errors --retry-delay 10 --max-time 45 \
+              -X OPTIONS -H "Origin: $origin" -H 'Access-Control-Request-Method: POST' \
+              -H 'Access-Control-Request-Headers: authorization,content-type' \
+              -D headers-options.txt -o /dev/null -w '%{http_code}' \
+              'https://saborlatino-api-8dde8f3e.azurewebsites.net/api/galeria')
+            test "$status" = 204
+            grep -qi "^access-control-allow-origin: $origin" headers-options.txt
+          done
