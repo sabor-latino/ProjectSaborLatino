@@ -38,10 +38,10 @@ export function fotoDePaquete(paquete: Paquete): string {
 
 // Galería de ejemplo para cuando todavía no hay fotos reales cargadas
 export const GALERIA_EJEMPLO = [
-  { id: 1, titulo: 'La pista llena', imagenUrl: fotoUnsplash('1504609813442-a8924e83f76e', 700), ancho: 700, alto: 467 },
-  { id: 2, titulo: 'Bodas', imagenUrl: fotoUnsplash('1519741497674-611481863552', 700, 900), ancho: 700, alto: 900 },
-  { id: 3, titulo: 'El momento del confeti', imagenUrl: fotoUnsplash('1492684223066-81342ee5ff30', 700), ancho: 700, alto: 467 },
-  { id: 4, titulo: 'Quince años y cumpleaños', imagenUrl: fotoUnsplash('1530103862676-de8c9debad1d', 700, 860), ancho: 700, alto: 860 },
-  { id: 5, titulo: 'Voces en vivo', imagenUrl: fotoUnsplash('1493225457124-a3eb161ffa5f', 700), ancho: 700, alto: 467 },
-  { id: 6, titulo: 'El primer baile', imagenUrl: fotoUnsplash('1465495976277-4387d4b0b4c6', 700), ancho: 700, alto: 467 },
+  { id: 1, titulo: 'La pista llena', tituloEn: 'A full dance floor', imagenUrl: fotoUnsplash('1504609813442-a8924e83f76e', 700), ancho: 700, alto: 467 },
+  { id: 2, titulo: 'Bodas', tituloEn: 'Weddings', imagenUrl: fotoUnsplash('1519741497674-611481863552', 700, 900), ancho: 700, alto: 900 },
+  { id: 3, titulo: 'El momento del confeti', tituloEn: 'The confetti moment', imagenUrl: fotoUnsplash('1492684223066-81342ee5ff30', 700), ancho: 700, alto: 467 },
+  { id: 4, titulo: 'Quince años y cumpleaños', tituloEn: 'Sweet 15s and birthdays', imagenUrl: fotoUnsplash('1530103862676-de8c9debad1d', 700, 860), ancho: 700, alto: 860 },
+  { id: 5, titulo: 'Voces en vivo', tituloEn: 'Live vocals', imagenUrl: fotoUnsplash('1493225457124-a3eb161ffa5f', 700), ancho: 700, alto: 467 },
+  { id: 6, titulo: 'El primer baile', tituloEn: 'The first dance', imagenUrl: fotoUnsplash('1465495976277-4387d4b0b4c6', 700), ancho: 700, alto: 467 },
 ];

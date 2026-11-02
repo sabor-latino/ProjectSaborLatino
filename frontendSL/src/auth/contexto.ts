@@ -9,6 +9,7 @@ export interface Sesion {
   registrarse: (datos: RegistroDatos) => Promise<void>;
   cerrarSesion: () => void;
   tieneRol: (...roles: Rol[]) => boolean;
+  actualizarPerfilLocal?: (perfil: Perfil) => void;
 }
 
 export const ContextoSesion = createContext<Sesion | null>(null);

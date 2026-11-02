@@ -1,16 +1,121 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { Resumen as DatosResumen } from '../../api/tipos';
+import type { Evento, Resumen as DatosResumen } from '../../api/tipos';
+import { useAuth } from '../../auth/contexto';
 import { Cargando, Mensaje } from '../../componentes/Estado';
-import { Cifra, TituloPanel } from '../../componentes/panel/Piezas';
+import { FichaEvento } from '../../componentes/panel/FichaEvento';
+import { Cifra, Dialogo, Insignia, TituloPanel } from '../../componentes/panel/Piezas';
 import { useDatos } from '../../hooks/useDatos';
-import { nombreEstado } from '../../utilidades/estados';
-import { formatoColones } from '../../utilidades/formato';
+import { nombreEstado, siguienteEstadoEvento } from '../../utilidades/estados';
+import { formatoColones, formatoFechaHora } from '../../utilidades/formato';
+import { CambiarEstado } from './Eventos';
 
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
-// Portada del panel: cómo va el mes
 export function Resumen() {
+  const { tieneRol } = useAuth();
+  const esTrabajador = tieneRol('Trabajador') && !tieneRol('Administrador', 'Superadministrador');
+
+  if (esTrabajador) {
+    return <EventosTrabajador />;
+  }
+
+  return <ResumenAdmin />;
+}
+
+// Vista exclusiva para empleados / técnicos
+function EventosTrabajador() {
+  const { datos, cargando, error, recargar } = useDatos<Evento[]>('/api/mis-eventos');
+  const [cambiando, setCambiando] = useState<Evento | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  const proximos = datos?.filter((e) => e.estado !== 'Finalizado' && e.estado !== 'Cancelado') ?? [];
+  const pasados = datos?.filter((e) => e.estado === 'Finalizado' || e.estado === 'Cancelado') ?? [];
+
+  return (
+    <section>
+      <TituloPanel titulo="Mis Eventos Asignados">
+        <Link to="/panel/perfil" className="boton boton--borde boton--chico">
+          Editar mi perfil
+        </Link>
+      </TituloPanel>
+
+      {aviso && <Mensaje tipo="exito">{aviso}</Mensaje>}
+      {cargando && <Cargando />}
+      {error && <Mensaje tipo="error">{error}</Mensaje>}
+
+      {datos && datos.length === 0 && (
+        <Mensaje>
+          No tiene eventos asignados por ahora. Cuando la administración lo vincule a un evento, aparecerá aquí.
+        </Mensaje>
+      )}
+
+      {proximos.length > 0 && (
+        <div className="lista-tarjetas" style={{ marginBottom: 'var(--esp-5)' }}>
+          {proximos.map((ev) => {
+            const siguiente = siguienteEstadoEvento(ev.estado);
+            return (
+              <article key={ev.id} className="tarjeta-panel tarjeta-panel__cuerpo">
+                <div className="panel__titulo">
+                  <strong>
+                    #{ev.id} · {ev.paqueteNombre ?? 'Evento a la medida'}
+                  </strong>
+                  <Insignia estado={ev.estado} />
+                </div>
+                <FichaEvento evento={ev} />
+                {siguiente && (
+                  <div className="acciones" style={{ marginTop: 'var(--esp-3)' }}>
+                    <button
+                      type="button"
+                      className="boton boton--accion boton--chico"
+                      onClick={() => setCambiando(ev)}
+                    >
+                      Avanzar a {nombreEstado(siguiente)}
+                    </button>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {pasados.length > 0 && (
+        <details className="pasados" style={{ marginTop: 'var(--esp-4)' }}>
+          <summary>
+            Historial de eventos anteriores ({pasados.length})
+          </summary>
+          <ul className="lista-simple" style={{ marginTop: 'var(--esp-2)' }}>
+            {pasados.map((ev) => (
+              <li key={ev.id}>
+                <span>
+                  #{ev.id} · {ev.paqueteNombre ?? 'Evento'} · {formatoFechaHora(ev.fechaInicio)}
+                </span>
+                <Insignia estado={ev.estado} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      <Dialogo titulo="Cambiar estado del evento" abierto={cambiando !== null} alCerrar={() => setCambiando(null)}>
+        {cambiando && (
+          <CambiarEstado
+            evento={cambiando}
+            alTerminar={(msg) => {
+              setCambiando(null);
+              setAviso(msg);
+              recargar();
+            }}
+          />
+        )}
+      </Dialogo>
+    </section>
+  );
+}
+
+// Portada del panel: cómo va el mes (Administrador y Superadministrador)
+function ResumenAdmin() {
   const hoy = new Date();
   const [mes, setMes] = useState(`${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`);
   const [anio, numeroMes] = mes.split('-').map(Number);
