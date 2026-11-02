@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Catalogo;
 using ProjectSaborLatino.Models;
@@ -119,9 +119,18 @@ public class PaqueteService : IPaqueteService
     {
         paquete.ServicioId = dto.ServicioId;
         paquete.Nombre = dto.Nombre;
+        paquete.NombreEn = dto.NombreEn;
         paquete.Descripcion = dto.Descripcion;
+        paquete.DescripcionEn = dto.DescripcionEn;
         paquete.PrecioBase = dto.PrecioBase;
         paquete.ImagenUrl = dto.ImagenUrl;
+        paquete.PotenciaSonido = dto.PotenciaSonido;
+        paquete.CoberturaAforo = dto.CoberturaAforo;
+        paquete.DuracionMontaje = dto.DuracionMontaje;
+        paquete.RequerimientosElectricos = dto.RequerimientosElectricos;
+        paquete.EspacioMinimo = dto.EspacioMinimo;
+        paquete.FichaTecnica = dto.FichaTecnica;
+        paquete.FichaTecnicaEn = dto.FichaTecnicaEn;
         paquete.Activo = dto.Activo;
 
         // Deja la lista de equipo igual a la del DTO:
@@ -149,10 +158,20 @@ public class PaqueteService : IPaqueteService
         Id = p.Id,
         ServicioId = p.ServicioId,
         ServicioNombre = p.Servicio?.Nombre ?? string.Empty,
+        ServicioNombreEn = p.Servicio?.NombreEn,
         Nombre = p.Nombre,
+        NombreEn = p.NombreEn,
         Descripcion = p.Descripcion,
+        DescripcionEn = p.DescripcionEn,
         PrecioBase = p.PrecioBase,
         ImagenUrl = p.ImagenUrl,
+        PotenciaSonido = p.PotenciaSonido,
+        CoberturaAforo = p.CoberturaAforo,
+        DuracionMontaje = p.DuracionMontaje,
+        RequerimientosElectricos = p.RequerimientosElectricos,
+        EspacioMinimo = p.EspacioMinimo,
+        FichaTecnica = p.FichaTecnica,
+        FichaTecnicaEn = p.FichaTecnicaEn,
         Activo = p.Activo,
         Equipos = p.Equipos
             .OrderBy(pe => pe.Equipo?.Nombre)
@@ -160,6 +179,9 @@ public class PaqueteService : IPaqueteService
             {
                 EquipoId = pe.EquipoId,
                 EquipoNombre = pe.Equipo?.Nombre ?? string.Empty,
+                EquipoNombreEn = pe.Equipo?.NombreEn,
+                EspecificacionTecnica = pe.Equipo?.EspecificacionTecnica,
+                EspecificacionTecnicaEn = pe.Equipo?.EspecificacionTecnicaEn,
                 Cantidad = pe.Cantidad
             })
             .ToList()

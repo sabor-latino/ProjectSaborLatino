@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectSaborLatino.DTOs.Sistema;
 
@@ -32,6 +32,16 @@ public class UsuarioCrearDto
     // "Superadministrador", "Administrador", "Trabajador" o "Cliente"
     [Required]
     public string Rol { get; set; } = string.Empty;
+}
+
+// PUT api/usuarios/{id}/perfil o PUT api/usuarios/{id}
+public class UsuarioModificarPerfilDto
+{
+    [Required, MaxLength(150)]
+    public string NombreCompleto { get; set; } = string.Empty;
+
+    [Phone, MaxLength(30)]
+    public string? Telefono { get; set; }
 }
 
 // PATCH api/usuarios/{id}/rol

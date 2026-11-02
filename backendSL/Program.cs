@@ -43,6 +43,7 @@ builder.Services.AddScoped<IPaqueteService, PaqueteService>();
 builder.Services.AddScoped<IEquipoService, EquipoService>();
 builder.Services.AddScoped<IImagenGaleriaService, ImagenGaleriaService>();
 builder.Services.AddScoped<IPreguntaFrecuenteService, PreguntaFrecuenteService>();
+builder.Services.AddScoped<IPromocionTemporadaService, PromocionTemporadaService>();
 
 // Services de solicitudes y cotizaciones (Fase 2)
 builder.Services.AddScoped<ISolicitudService, SolicitudService>();
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IBitacoraService, BitacoraService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IConfiguracionService, ConfiguracionService>();
+builder.Services.AddScoped<IContenidoInicioService, ContenidoInicioService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
 
 // CORS para el frontend React
@@ -87,8 +89,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
 app.UseCors(PoliticaFrontend);
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 
 // Valida en cada petición autenticada que el usuario siga activo en BD, que su SecurityStamp coincida y sincroniza sus roles actuales

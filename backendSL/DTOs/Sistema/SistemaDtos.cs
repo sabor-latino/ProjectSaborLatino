@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectSaborLatino.DTOs.Sistema;
 
@@ -46,6 +46,11 @@ public class FidelidadDto
     // Solo si la solicitud tiene paquete
     public decimal? PrecioBase { get; set; }
     public decimal? DescuentoSugerido { get; set; }
+
+    // Promoción de temporada aplicable al paquete de la solicitud (si existe y está vigente)
+    public string? PromocionTemporadaNombre { get; set; }
+    public decimal PorcentajePromocionTemporada { get; set; }
+    public decimal? DescuentoPromocionSugerido { get; set; }
 }
 
 // =============== Reportes ===============

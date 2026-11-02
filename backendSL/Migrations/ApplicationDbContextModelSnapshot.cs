@@ -397,8 +397,20 @@ namespace ProjectSaborLatino.Migrations
                     b.Property<int>("CantidadTotal")
                         .HasColumnType("int");
 
+                    b.Property<string>("EspecificacionTecnica")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EspecificacionTecnicaEn")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NombreEn")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -563,6 +575,10 @@ namespace ProjectSaborLatino.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<string>("TituloEn")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.HasKey("Id");
 
                     b.ToTable("ImagenesGaleria");
@@ -579,9 +595,33 @@ namespace ProjectSaborLatino.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
+                    b.Property<string>("CoberturaAforo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DescripcionEn")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DuracionMontaje")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("EspacioMinimo")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("FichaTecnica")
+                        .HasMaxLength(1500)
+                        .HasColumnType("nvarchar(1500)");
+
+                    b.Property<string>("FichaTecnicaEn")
+                        .HasMaxLength(1500)
+                        .HasColumnType("nvarchar(1500)");
 
                     b.Property<string>("ImagenUrl")
                         .HasMaxLength(500)
@@ -592,9 +632,21 @@ namespace ProjectSaborLatino.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("NombreEn")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PotenciaSonido")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<decimal>("PrecioBase")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("RequerimientosElectricos")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<int>("ServicioId")
                         .HasColumnType("int");
@@ -643,14 +695,108 @@ namespace ProjectSaborLatino.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
+                    b.Property<string>("PreguntaEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("Respuesta")
                         .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("RespuestaEn")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
                     b.HasKey("Id");
 
                     b.ToTable("PreguntasFrecuentes");
+                });
+
+            modelBuilder.Entity("ProjectSaborLatino.Models.PromocionTemporada", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("CodigoPromocional")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DescripcionEn")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("DestacadaEnInicio")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("EtiquetaTemporada")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("EtiquetaTemporadaEn")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("NombreEn")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<decimal>("PorcentajeDescuento")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PromocionesTemporada");
+                });
+
+            modelBuilder.Entity("ProjectSaborLatino.Models.PromocionTemporadaPaquete", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PaqueteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PromocionTemporadaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaqueteId");
+
+                    b.HasIndex("PromocionTemporadaId", "PaqueteId")
+                        .IsUnique();
+
+                    b.ToTable("PromocionesTemporadaPaquetes");
                 });
 
             modelBuilder.Entity("ProjectSaborLatino.Models.Servicio", b =>
@@ -668,12 +814,20 @@ namespace ProjectSaborLatino.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<string>("DescripcionEn")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("ImagenUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NombreEn")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -932,6 +1086,25 @@ namespace ProjectSaborLatino.Migrations
                     b.Navigation("Paquete");
                 });
 
+            modelBuilder.Entity("ProjectSaborLatino.Models.PromocionTemporadaPaquete", b =>
+                {
+                    b.HasOne("ProjectSaborLatino.Models.Paquete", "Paquete")
+                        .WithMany()
+                        .HasForeignKey("PaqueteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProjectSaborLatino.Models.PromocionTemporada", "PromocionTemporada")
+                        .WithMany("Paquetes")
+                        .HasForeignKey("PromocionTemporadaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Paquete");
+
+                    b.Navigation("PromocionTemporada");
+                });
+
             modelBuilder.Entity("ProjectSaborLatino.Models.Solicitud", b =>
                 {
                     b.HasOne("ProjectSaborLatino.Models.ApplicationUser", "ClienteUsuario")
@@ -961,6 +1134,11 @@ namespace ProjectSaborLatino.Migrations
             modelBuilder.Entity("ProjectSaborLatino.Models.Paquete", b =>
                 {
                     b.Navigation("Equipos");
+                });
+
+            modelBuilder.Entity("ProjectSaborLatino.Models.PromocionTemporada", b =>
+                {
+                    b.Navigation("Paquetes");
                 });
 
             modelBuilder.Entity("ProjectSaborLatino.Models.Servicio", b =>

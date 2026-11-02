@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectSaborLatino.DTOs.Eventos;
 
@@ -68,6 +68,19 @@ public class EventoCrearDto
 
     // true: reserva el mismo equipo que trae el paquete
     public bool CopiarEquipoDelPaquete { get; set; } = true;
+}
+
+// Lo que manda el admin para modificar un evento existente (fechas, lugar y notas)
+public class EventoModificarDto
+{
+    public DateTime? FechaInicio { get; set; }
+    public DateTime? FechaFin { get; set; }
+
+    [MaxLength(300)]
+    public string? Lugar { get; set; }
+
+    [MaxLength(2000)]
+    public string? Notas { get; set; }
 }
 
 // Un elemento de la lista de PUT api/eventos/{id}/equipos

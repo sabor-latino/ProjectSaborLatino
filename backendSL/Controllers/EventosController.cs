@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProjectSaborLatino.DTOs.Eventos;
@@ -76,6 +76,22 @@ public class EventosController : ControllerBase
 
         var dto = await _service.ObtenerPorIdAsync(id, soloDelCliente, soloDelTrabajador);
         return dto is null ? NotFound() : dto;
+    }
+
+    // PUT api/eventos/5 → modificar fechas, lugar y notas del evento (solo admin)
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = RolesAdmin)]
+    public async Task<ActionResult<EventoDto>> Modificar(int id, EventoModificarDto dto)
+    {
+        try
+        {
+            var actualizado = await _service.ModificarAsync(id, dto, UsuarioId()!);
+            return actualizado is null ? NotFound() : actualizado;
+        }
+        catch (DatosInvalidosException ex)
+        {
+            return DatosInvalidos(ex);
+        }
     }
 
     // PUT api/eventos/5/equipos → reemplaza todo el equipo reservado (solo admin)

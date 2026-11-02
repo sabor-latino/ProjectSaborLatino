@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectSaborLatino.DTOs.Catalogo;
 
@@ -8,10 +8,20 @@ public class PaqueteDto
     public int Id { get; set; }
     public int ServicioId { get; set; }
     public string ServicioNombre { get; set; } = string.Empty;
+    public string? ServicioNombreEn { get; set; }
     public string Nombre { get; set; } = string.Empty;
+    public string? NombreEn { get; set; }
     public string? Descripcion { get; set; }
+    public string? DescripcionEn { get; set; }
     public decimal PrecioBase { get; set; }
     public string? ImagenUrl { get; set; }
+    public string? PotenciaSonido { get; set; }
+    public string? CoberturaAforo { get; set; }
+    public string? DuracionMontaje { get; set; }
+    public string? RequerimientosElectricos { get; set; }
+    public string? EspacioMinimo { get; set; }
+    public string? FichaTecnica { get; set; }
+    public string? FichaTecnicaEn { get; set; }
     public bool Activo { get; set; }
     public List<PaqueteEquipoDto> Equipos { get; set; } = [];
 }
@@ -21,6 +31,9 @@ public class PaqueteEquipoDto
 {
     public int EquipoId { get; set; }
     public string EquipoNombre { get; set; } = string.Empty;
+    public string? EquipoNombreEn { get; set; }
+    public string? EspecificacionTecnica { get; set; }
+    public string? EspecificacionTecnicaEn { get; set; }
     public int Cantidad { get; set; }
 }
 
@@ -33,14 +46,41 @@ public class PaqueteGuardarDto
     [Required, MaxLength(100)]
     public string Nombre { get; set; } = string.Empty;
 
+    [MaxLength(100)]
+    public string? NombreEn { get; set; }
+
     [MaxLength(1000)]
     public string? Descripcion { get; set; }
+
+    [MaxLength(1000)]
+    public string? DescripcionEn { get; set; }
 
     [Range(0, 99999999.99, ErrorMessage = "El precio no puede ser negativo.")]
     public decimal PrecioBase { get; set; }
 
-    [MaxLength(500)]
+    [MaxLength(500), UrlHttpAbsoluta]
     public string? ImagenUrl { get; set; }
+
+    [MaxLength(100)]
+    public string? PotenciaSonido { get; set; }
+
+    [MaxLength(100)]
+    public string? CoberturaAforo { get; set; }
+
+    [MaxLength(150)]
+    public string? DuracionMontaje { get; set; }
+
+    [MaxLength(250)]
+    public string? RequerimientosElectricos { get; set; }
+
+    [MaxLength(150)]
+    public string? EspacioMinimo { get; set; }
+
+    [MaxLength(1500)]
+    public string? FichaTecnica { get; set; }
+
+    [MaxLength(1500)]
+    public string? FichaTecnicaEn { get; set; }
 
     public bool Activo { get; set; } = true;
 
