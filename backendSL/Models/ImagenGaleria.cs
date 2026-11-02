@@ -10,6 +10,9 @@ public class ImagenGaleria
     [MaxLength(150)]
     public string Titulo { get; set; } = string.Empty;
 
+    [MaxLength(150)]
+    public string? TituloEn { get; set; }
+
     [MaxLength(500)]
     public string ImagenUrl { get; set; } = string.Empty;
 

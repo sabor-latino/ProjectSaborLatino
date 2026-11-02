@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Sistema;
 using ProjectSaborLatino.Models;
@@ -46,6 +46,35 @@ public class ReporteService : IReporteService
         var aplica = solicitud.ClienteUsuarioId is not null && finalizados >= minimos;
         var precio = solicitud.Paquete?.PrecioBase;
 
+        string? promoNombre = null;
+        decimal promoPorcentaje = 0m;
+        decimal? promoDescuentoSugerido = null;
+
+        if (solicitud.PaqueteId is int paqueteId && precio is decimal precioBase)
+        {
+            var ahoraUtc = DateTime.UtcNow;
+            var ahoraLocal = DateTime.Now;
+            var fechaEvento = solicitud.FechaEvento;
+
+            var promo = await _db.PromocionesTemporada
+                .AsNoTracking()
+                .Where(p => p.Activo &&
+                    ((p.FechaInicio <= fechaEvento && p.FechaFin >= fechaEvento) ||
+                     (p.FechaInicio <= ahoraUtc && p.FechaFin >= ahoraUtc) ||
+                     (p.FechaInicio <= ahoraLocal && p.FechaFin >= ahoraLocal)) &&
+                    p.Paquetes.Any(pp => pp.PaqueteId == paqueteId))
+                .OrderByDescending(p => p.PorcentajeDescuento)
+                .ThenByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            if (promo is not null)
+            {
+                promoNombre = promo.Nombre;
+                promoPorcentaje = promo.PorcentajeDescuento;
+                promoDescuentoSugerido = Math.Round(precioBase * promo.PorcentajeDescuento / 100m, 2);
+            }
+        }
+
         return new FidelidadDto
         {
             SolicitudId = solicitud.Id,
@@ -55,7 +84,10 @@ public class ReporteService : IReporteService
             PorcentajeDescuento = porcentaje,
             Aplica = aplica,
             PrecioBase = precio,
-            DescuentoSugerido = precio is null ? null : (aplica ? Math.Round(precio.Value * porcentaje / 100m, 2) : 0m)
+            DescuentoSugerido = precio is null ? null : (aplica ? Math.Round(precio.Value * porcentaje / 100m, 2) : 0m),
+            PromocionTemporadaNombre = promoNombre,
+            PorcentajePromocionTemporada = promoPorcentaje,
+            DescuentoPromocionSugerido = promoDescuentoSugerido
         };
     }
 

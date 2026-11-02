@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectSaborLatino.Models;
 
@@ -10,8 +10,14 @@ public class Servicio
     [MaxLength(100)]
     public string Nombre { get; set; } = string.Empty;
 
+    [MaxLength(100)]
+    public string? NombreEn { get; set; }
+
     [MaxLength(1000)]
     public string? Descripcion { get; set; }
+
+    [MaxLength(1000)]
+    public string? DescripcionEn { get; set; }
 
     [MaxLength(500)]
     public string? ImagenUrl { get; set; }

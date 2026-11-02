@@ -105,6 +105,11 @@ public class EmpleadoService : IEmpleadoService
             throw new DatosInvalidosException("No existe el usuario indicado.");
         }
 
+        if (!usuario.Activo)
+        {
+            throw new DatosInvalidosException("El usuario indicado está inactivo.");
+        }
+
         if (!await _userManager.IsInRoleAsync(usuario, Roles.Trabajador))
         {
             throw new DatosInvalidosException("El usuario indicado no tiene el rol Trabajador.");

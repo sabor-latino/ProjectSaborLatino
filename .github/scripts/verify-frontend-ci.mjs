@@ -9,20 +9,18 @@
  *    - Un archivo de bloqueo (`package-lock.json` o `npm-shrinkwrap.json`) e instalación con `npm ci`.
  *    - El script `"lint"` en `package.json` y ejecución exitosa de `npm run lint`.
  *    - El script `"build"` en `package.json` y ejecución exitosa de `npm run build`.
- * 3. Hacer cumplir el contrato `test:ci` para pruebas futuras en cada paquete sin enumerar
- *    archivos, componentes, diseños ni carpetas en el workflow:
- *    - Si el paquete define el script `"test:ci"`, se ejecuta siempre con `CI=true`.
- *    - Si existen archivos `*.test.*`, `*.spec.*` o dentro de `__tests__/` y falta `"test:ci"`,
- *      el verificador falla con código de salida 1 y un mensaje claro.
- *    - Si aún no existen pruebas ni `"test:ci"`, deja constancia explícita de que solo se
- *      verificaron `lint` y `build` (sin afirmar cobertura de interacción ni apariencia).
+ * 3. Si el paquete raíz define los scripts `"build:public"` y `"build:admin"`, compila y valida la separación de portales.
+ * 4. Hacer cumplir el contrato `test:ci`:
+ *    - Si define el script `"test:ci"` y tiene pruebas, se ejecuta siempre con `CI=true`.
+ *    - Si existen archivos de pruebas pero falta `"test:ci"`, falla con error claro.
+ *    - Si aún no existen pruebas en el paquete, registra el aviso informativo y continúa.
  */
 
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const IGNORED_DIRS = new Set(['node_modules', 'dist', 'build', '.git', 'coverage', '.vite']);
+const IGNORED_DIRS = new Set(['node_modules', 'dist-public', 'dist-admin', 'dist', 'build', '.git', 'coverage', '.vite']);
 const TEST_FILE_REGEX = /\.(test|spec)\.[cm]?[jt]sx?$/i;
 const CODE_FILE_REGEX = /\.[cm]?[jt]sx?$/i;
 
@@ -108,7 +106,40 @@ function runCommand(command, args, cwd, extraEnv = {}) {
 
   if (result.status !== 0) {
     console.error(`[frontend-ci] El comando "${display}" falló con código de salida ${result.status}.`);
-    process.exit(result.status ?? 1);
+    process.exit(1);
+  }
+}
+
+function verifyPortalBuilds(packageDir) {
+  const publicPages = /^src\/paginas\/(Inicio|Galeria|Paquetes|PreguntasFrecuentes|SolicitarCotizacion)\.tsx$/;
+  for (const [directory, portal, ownEntry, forbidden] of [
+    ['dist-public', 'publico', 'src/AppPublico.tsx', /^(src\/AppAdmin\.tsx|src\/paginas\/Login\.tsx|src\/paginas\/panel\/)/],
+    ['dist-admin', 'admin', 'src/AppAdmin.tsx', /^src\/AppPublico\.tsx$/],
+  ]) {
+    const outputDir = path.join(packageDir, directory);
+    const reportPath = path.join(outputDir, '.vite', 'portal-modules.json');
+    if (!fs.existsSync(reportPath)) throw new Error('[frontend-ci] Falta informe de módulos: ' + reportPath);
+    const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    if (report.portal !== portal || !Array.isArray(report.modules) ||
+        !report.modules.every(module => typeof module === 'string' && module.startsWith('src/')) ||
+        !report.modules.includes(ownEntry)) {
+      throw new Error('[frontend-ci] Informe inválido o portal incompleto: ' + directory);
+    }
+    const leaked = report.modules.filter(module => forbidden.test(module) || (portal === 'admin' && publicPages.test(module)));
+    if (leaked.length) throw new Error('[frontend-ci] ' + directory + ' incluye módulos del otro portal: ' + leaked.join(', '));
+    const scripts = [];
+    function readScripts(dir) {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) readScripts(fullPath);
+        else if (entry.isFile() && /\.m?js$/.test(entry.name)) scripts.push(fs.readFileSync(fullPath, 'utf8'));
+      }
+    }
+    readScripts(outputDir);
+    if (!scripts.length || (portal === 'publico' && scripts.some(script => script.includes('Portal Administrativo')))) {
+      throw new Error('[frontend-ci] ' + directory + ' vacío o contiene texto exclusivo administrativo.');
+    }
+    console.log('[frontend-ci] ' + directory + ': ' + report.modules.length + ' módulos fuente; separación comprobada.');
   }
 }
 
@@ -170,16 +201,22 @@ function main() {
 
     runCommand('npm', ['run', 'lint'], pkgDir);
     runCommand('npm', ['run', 'build'], pkgDir);
+    if (pkgDir === rootDir && typeof scripts['build:public'] === 'string' && typeof scripts['build:admin'] === 'string') {
+      for (const script of ['build:public', 'build:admin']) {
+        runCommand('npm', ['run', script], pkgDir);
+      }
+      verifyPortalBuilds(pkgDir);
+    }
 
     const detectedTestFiles = findTestFiles(pkgDir, packageDirs);
     const hasTestCiScript = typeof scripts['test:ci'] === 'string' && scripts['test:ci'].trim().length > 0;
 
-    if (hasTestCiScript) {
+    if (hasTestCiScript && detectedTestFiles.length > 0) {
       console.log(
         `[frontend-ci] Script "test:ci" detectado en ${relPkgDir} (${detectedTestFiles.length} archivo(s) de prueba encontrados). Ejecutando suite no interactiva...`
       );
       runCommand('npm', ['run', 'test:ci'], pkgDir);
-    } else if (detectedTestFiles.length > 0) {
+    } else if (detectedTestFiles.length > 0 && !hasTestCiScript) {
       console.error(
         `\n[frontend-ci] ERROR DE CONTRATO CI: Se detectaron ${detectedTestFiles.length} archivo(s) de prueba en "${relPkgDir}", ` +
           `pero package.json no define el script "test:ci".\n` +
@@ -187,11 +224,15 @@ function main() {
           `Defina "test:ci" en ${path.join(relPkgDir, 'package.json')} para ejecutar el runner de pruebas de forma no interactiva en CI.`
       );
       process.exit(1);
+    } else if (hasTestCiScript && detectedTestFiles.length === 0) {
+      console.log(
+        `[frontend-ci] Script "test:ci" definido en ${relPkgDir}. Ejecutando suite no interactiva...`
+      );
+      runCommand('npm', ['run', 'test:ci'], pkgDir);
     } else {
       console.log(
         `\n[frontend-ci] AVISO: "${relPkgDir}" superó "npm run lint" y "npm run build" (análisis estático ESLint, compilación TypeScript y empaquetado Vite).\n` +
-          `[frontend-ci] No existen todavía archivos de prueba (*.test.*, *.spec.*) ni script "test:ci" en "${relPkgDir}".\n` +
-          `[frontend-ci] Nota: lint y build no verifican interacciones de usuario en navegador ni apariencia visual.`
+          `[frontend-ci] No existen todavía archivos de prueba (*.test.*, *.spec.*) ni script "test:ci" en "${relPkgDir}".`
       );
     }
   }

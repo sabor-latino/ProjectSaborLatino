@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,9 @@ public class StartupAndCatalogTests : IClassFixture<BackendTestFactory>
         "20261006220938_Catalogo",
         "20261007011559_SolicitudesCotizaciones",
         "20261007040140_Eventos",
-        "20261007043719_UsuariosSistema"
+        "20261007043719_UsuariosSistema",
+        "20261101190334_EvolucionCatalogoPromocionesInicio",
+            "20261101205742_GaleriaTituloEn"
     ];
 
     private readonly BackendTestFactory _factory;
@@ -62,6 +64,8 @@ public class StartupAndCatalogTests : IClassFixture<BackendTestFactory>
             "PaquetesEquipos",
             "ImagenesGaleria",
             "PreguntasFrecuentes",
+            "PromocionesTemporada",
+            "PromocionesTemporadaPaquetes",
             "Solicitudes",
             "Cotizaciones",
             "Empleados",

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Catalogo;
 using ProjectSaborLatino.Models;
@@ -85,7 +85,9 @@ public class ServicioService : IServicioService
     private static void CopiarDatos(ServicioGuardarDto dto, Servicio servicio)
     {
         servicio.Nombre = dto.Nombre;
+        servicio.NombreEn = dto.NombreEn;
         servicio.Descripcion = dto.Descripcion;
+        servicio.DescripcionEn = dto.DescripcionEn;
         servicio.ImagenUrl = dto.ImagenUrl;
         servicio.Activo = dto.Activo;
     }
@@ -94,7 +96,9 @@ public class ServicioService : IServicioService
     {
         Id = s.Id,
         Nombre = s.Nombre,
+        NombreEn = s.NombreEn,
         Descripcion = s.Descripcion,
+        DescripcionEn = s.DescripcionEn,
         ImagenUrl = s.ImagenUrl,
         Activo = s.Activo
     };
