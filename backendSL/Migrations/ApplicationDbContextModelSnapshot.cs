@@ -847,6 +847,9 @@ namespace ProjectSaborLatino.Migrations
                     b.Property<int?>("CantidadInvitados")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("ClaveIdempotencia")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("ClienteUsuarioId")
                         .HasColumnType("nvarchar(450)");
 
@@ -855,7 +858,6 @@ namespace ProjectSaborLatino.Migrations
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("CorreoContacto")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -870,6 +872,10 @@ namespace ProjectSaborLatino.Migrations
                     b.Property<DateTime>("FechaEvento")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("HuellaIdempotencia")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Lugar")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -883,6 +889,13 @@ namespace ProjectSaborLatino.Migrations
                     b.Property<int?>("PaqueteId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("RecibidoWhatsAppEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecibidoWhatsAppPorUsuarioId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("TelefonoContacto")
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
@@ -893,6 +906,10 @@ namespace ProjectSaborLatino.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClaveIdempotencia")
+                        .IsUnique()
+                        .HasFilter("[ClaveIdempotencia] IS NOT NULL");
 
                     b.HasIndex("ClienteUsuarioId");
 

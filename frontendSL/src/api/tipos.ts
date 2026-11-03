@@ -148,8 +148,9 @@ export interface RespuestaLogin {
 
 export interface SolicitudCrear {
   nombreContacto: string;
-  correoContacto: string;
+  correoContacto?: string | null;
   telefonoContacto?: string;
+  claveIdempotencia?: string;
   paqueteId?: number;
   tipoEvento: string;
   fechaEvento: string;
@@ -161,7 +162,9 @@ export interface SolicitudCrear {
 export interface Solicitud {
   id: number;
   nombreContacto: string;
-  correoContacto: string;
+  correoContacto: string | null;
+  recibidoWhatsAppEn?: string | null;
+  recibidoWhatsAppPorUsuarioId?: string | null;
   paqueteId: number | null;
   paqueteNombre: string | null;
   tipoEvento: string;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../api/cliente';
 import type { Cotizacion, Fidelidad, Solicitud } from '../../api/tipos';
 import { Cargando, Mensaje } from '../../componentes/Estado';
@@ -6,6 +6,8 @@ import { Dialogo, FormularioAccion, Insignia, TituloPanel } from '../../componen
 import { useDatos } from '../../hooks/useDatos';
 import { ESTADOS_SOLICITUD, nombreEstado } from '../../utilidades/estados';
 import { ahoraParaInput, formatoColones, formatoFecha, formatoFechaHora } from '../../utilidades/formato';
+import { useAuth } from '../../auth/contexto';
+import { usePreferencias } from '../../preferencias/PreferenciasContext';
 
 type Accion =
   | { tipo: 'cotizar'; solicitud: Solicitud }
@@ -14,6 +16,8 @@ type Accion =
 
 // Bandeja de solicitudes: aquí el admin cotiza, acepta y convierte en evento
 export function Solicitudes() {
+  const { tieneRol } = useAuth();
+  const { t } = usePreferencias();
   const [estado, setEstado] = useState('Pendiente');
   const { datos, cargando, error, recargar } = useDatos<Solicitud[]>(
     estado ? `/api/solicitudes?estado=${estado}` : '/api/solicitudes',
@@ -21,6 +25,11 @@ export function Solicitudes() {
   const [abierta, setAbierta] = useState<number | null>(null);
   const [accion, setAccion] = useState<Accion>(null);
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
+  const avisoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (aviso) avisoRef.current?.focus();
+  }, [aviso]);
 
   const ejecutar = async (
     pregunta: string,
@@ -57,7 +66,7 @@ export function Solicitudes() {
         ))}
       </div>
 
-      {aviso && <Mensaje tipo={aviso.tipo}>{aviso.texto}</Mensaje>}
+      {aviso && <div ref={avisoRef} tabIndex={-1} className="panel__aviso"><Mensaje tipo={aviso.tipo}>{aviso.texto}</Mensaje></div>}
       {cargando && <Cargando />}
       {error && <Mensaje tipo="error">{error}</Mensaje>}
       {datos && datos.length === 0 && <Mensaje>No hay solicitudes en este estado.</Mensaje>}
@@ -90,7 +99,7 @@ export function Solicitudes() {
                   <dl className="ficha">
                     <dt>Contacto</dt>
                     <dd>
-                      {s.nombreContacto} · <a href={`mailto:${s.correoContacto}`}>{s.correoContacto}</a>
+                      {s.nombreContacto}{s.correoContacto && <> · <a href={`mailto:${s.correoContacto}`}>{s.correoContacto}</a></>}
                       {s.telefonoContacto && ` · ${s.telefonoContacto}`}
                     </dd>
                     <dt>Paquete</dt>
@@ -99,8 +108,8 @@ export function Solicitudes() {
                     <dd>{s.cantidadInvitados ?? '—'}</dd>
                     <dt>Cuenta</dt>
                     <dd>{s.clienteUsuarioId ? 'Cliente registrado' : 'Visitante sin cuenta'}</dd>
-                    <dt>Recibida</dt>
-                    <dd>{formatoFecha(s.fechaCreacion)}</dd>
+                    <dt>{t('Registrada', 'Registered')}</dt>
+                    <dd>{formatoFechaHora(s.fechaCreacion)}</dd>
                     {s.comentarios && (
                       <>
                         <dt>Comentarios</dt>
@@ -109,7 +118,25 @@ export function Solicitudes() {
                     )}
                   </dl>
 
-                  <h3 className="subtitulo">Cotizaciones</h3>
+                  <section className="recepcion-whatsapp" aria-labelledby={`recepcion-whatsapp-${s.id}`}>
+                    <div>
+                      <h2 id={`recepcion-whatsapp-${s.id}`} className="recepcion-whatsapp__titulo">{t('Recepción por WhatsApp', 'WhatsApp receipt')}</h2>
+                      <p>{s.recibidoWhatsAppEn ? t('Recepción confirmada manualmente', 'Receipt manually confirmed') : t('Sin confirmación de recepción', 'Receipt not confirmed')}</p>
+                      {s.recibidoWhatsAppEn && <p className="texto-suave">{formatoFechaHora(s.recibidoWhatsAppEn)}</p>}
+                      {s.recibidoWhatsAppPorUsuarioId && <p className="recepcion-whatsapp__autor">{t('Registrado por', 'Recorded by')}: <span>{s.recibidoWhatsAppPorUsuarioId}</span></p>}
+                    </div>
+                    {!s.recibidoWhatsAppEn && tieneRol('Administrador', 'Superadministrador') && (
+                      <button type="button" className="boton boton--borde boton--chico" onClick={() => ejecutar(
+                        t('Confirme que recibió el mensaje de esta solicitud en WhatsApp. ¿Marcar como recibido?', 'Confirm you received this request message on WhatsApp. Mark as received?'),
+                        () => api.post(`/api/solicitudes/${s.id}/whatsapp-recibido`),
+                        t('Recepción de WhatsApp confirmada manualmente.', 'WhatsApp receipt manually confirmed.'),
+                      )}>
+                        {t('Marcar recibido por WhatsApp', 'Mark WhatsApp received')}
+                      </button>
+                    )}
+                  </section>
+
+                  <h2 className="subtitulo">{t('Cotizaciones', 'Quotes')}</h2>
                   {(s.cotizaciones?.length ?? 0) === 0 && <p className="texto-suave">Todavía no tiene cotizaciones.</p>}
                   <ul className="lista-simple">
                     {s.cotizaciones?.map((c) => (
@@ -170,7 +197,7 @@ export function Solicitudes() {
                         className="boton boton--accion boton--chico"
                         onClick={() => setAccion({ tipo: 'cotizar', solicitud: s })}
                       >
-                        Enviar cotización
+                        {t('Preparar cotización', 'Prepare quote')}
                       </button>
                     )}
                     {aceptada && (
@@ -220,9 +247,9 @@ export function Solicitudes() {
         })}
       </div>
 
-      <Dialogo titulo="Enviar cotización" abierto={accion?.tipo === 'cotizar'} alCerrar={() => setAccion(null)}>
+      <Dialogo titulo={t('Preparar cotización', 'Prepare quote')} abierto={accion?.tipo === 'cotizar'} alCerrar={() => setAccion(null)}>
         {accion?.tipo === 'cotizar' && (
-          <NuevaCotizacion solicitud={accion.solicitud} alTerminar={() => terminar('Cotización enviada.')} />
+          <NuevaCotizacion solicitud={accion.solicitud} alTerminar={() => terminar(t('Cotización registrada.', 'Quote saved.'))} />
         )}
       </Dialogo>
 
@@ -240,6 +267,7 @@ export function Solicitudes() {
 }
 
 function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTerminar: () => void }) {
+  const { t } = usePreferencias();
   const fidelidad = useDatos<Fidelidad>(`/api/solicitudes/${solicitud.id}/fidelidad`);
   const [monto, setMonto] = useState('');
   const [descuento, setDescuento] = useState('');
@@ -257,7 +285,7 @@ function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTe
 
   return (
     <FormularioAccion
-      textoBoton="Enviar cotización"
+      textoBoton={t('Guardar cotización', 'Save quote')}
       alEnviar={async () => {
         await api.post(`/api/solicitudes/${solicitud.id}/cotizaciones`, {
           monto: Number(monto),

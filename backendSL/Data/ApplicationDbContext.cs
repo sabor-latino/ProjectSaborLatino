@@ -63,6 +63,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<Solicitud>(e =>
         {
+            e.HasIndex(s => s.ClaveIdempotencia).IsUnique()
+                .HasFilter("[ClaveIdempotencia] IS NOT NULL");
+
             // El estado se guarda como texto ("Pendiente") y no como número (0)
             e.Property(s => s.Estado).HasConversion<string>().HasMaxLength(20);
 

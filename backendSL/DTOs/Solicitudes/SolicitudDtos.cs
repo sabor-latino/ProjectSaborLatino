@@ -8,7 +8,7 @@ public class SolicitudDto
     public int Id { get; set; }
     public string? ClienteUsuarioId { get; set; }
     public string NombreContacto { get; set; } = string.Empty;
-    public string CorreoContacto { get; set; } = string.Empty;
+    public string? CorreoContacto { get; set; }
     public string? TelefonoContacto { get; set; }
     public int? PaqueteId { get; set; }
     public string? PaqueteNombre { get; set; }
@@ -19,6 +19,8 @@ public class SolicitudDto
     public string? Comentarios { get; set; }
     public string Estado { get; set; } = string.Empty;
     public DateTime FechaCreacion { get; set; }
+    public DateTime? RecibidoWhatsAppEn { get; set; }
+    public string? RecibidoWhatsAppPorUsuarioId { get; set; }
     public List<CotizacionDto> Cotizaciones { get; set; } = [];
 }
 
@@ -28,11 +30,13 @@ public class SolicitudCrearDto
     [Required, MaxLength(150)]
     public string NombreContacto { get; set; } = string.Empty;
 
-    [Required, EmailAddress, MaxLength(256)]
-    public string CorreoContacto { get; set; } = string.Empty;
+    [EmailAddress, MaxLength(256)]
+    public string? CorreoContacto { get; set; }
 
     [MaxLength(30)]
     public string? TelefonoContacto { get; set; }
+
+    public Guid? ClaveIdempotencia { get; set; }
 
     // Opcional: el paquete que le interesa
     public int? PaqueteId { get; set; }

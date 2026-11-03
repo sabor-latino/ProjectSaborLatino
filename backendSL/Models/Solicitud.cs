@@ -16,7 +16,7 @@ public class Solicitud
     public string NombreContacto { get; set; } = string.Empty;
 
     [MaxLength(256)]
-    public string CorreoContacto { get; set; } = string.Empty;
+    public string? CorreoContacto { get; set; }
 
     [MaxLength(30)]
     public string? TelefonoContacto { get; set; }
@@ -42,6 +42,18 @@ public class Solicitud
     public EstadoSolicitud Estado { get; set; } = EstadoSolicitud.Pendiente;
 
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+
+    // La clave es privada del intento de creación; no se publica en el DTO de respuesta.
+    public Guid? ClaveIdempotencia { get; set; }
+
+    [MaxLength(64)]
+    public string? HuellaIdempotencia { get; set; }
+
+    // Confirmación humana independiente del estado comercial de la solicitud.
+    public DateTime? RecibidoWhatsAppEn { get; set; }
+
+    [MaxLength(450)]
+    public string? RecibidoWhatsAppPorUsuarioId { get; set; }
 
     // El admin puede responder con una o varias cotizaciones
     public List<Cotizacion> Cotizaciones { get; set; } = [];

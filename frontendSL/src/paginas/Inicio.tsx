@@ -338,8 +338,8 @@ export function Inicio() {
               <li>
                 <IconoCheck />
                 {t(
-                  'Atención personalizada y propuesta formal enviada a su correo',
-                  'Personalized attention and formal quote sent directly to your email',
+                  'Solicitud registrada y atención personalizada por WhatsApp',
+                  'Saved request and personalized assistance on WhatsApp',
                 )}
               </li>
             </ul>
