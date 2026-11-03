@@ -18,6 +18,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Test Azure SQL source fingerprint on Windows
+        run: python -B -m unittest discover -s .github/scripts/tests -p test_azure_schema_baseline.py -v
+
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -84,6 +87,15 @@ jobs:
             throw "Quedaron bases SaborLatinoDb* en la instancia LocalDB de CI: $($dbs -join ', ')"
           }
           Write-Host "Verificado: 0 bases SaborLatinoDb* residuales en LocalDB."
+
+  azure-schema:
+    name: Azure SQL source fingerprint (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Test deterministic Azure SQL source fingerprint
+        run: python -B -m unittest discover -s .github/scripts/tests -p test_azure_schema_baseline.py -v
 
   frontend:
     name: Frontend (Lint, TypeScript + Vite Build & Test Contract)
