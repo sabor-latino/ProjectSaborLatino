@@ -22,7 +22,8 @@ public class StartupAndCatalogTests : IClassFixture<BackendTestFactory>
         "20261007040140_Eventos",
         "20261007043719_UsuariosSistema",
         "20261101190334_EvolucionCatalogoPromocionesInicio",
-            "20261101205742_GaleriaTituloEn"
+        "20261101205742_GaleriaTituloEn",
+        "20261102190453_SolicitudWhatsAppManual"
     ];
 
     private readonly BackendTestFactory _factory;

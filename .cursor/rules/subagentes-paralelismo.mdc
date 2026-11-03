@@ -1,0 +1,19 @@
+---
+description: Usar el máximo paralelismo útil con subagentes conservando reglas, alcance y evidencia
+alwaysApply: true
+---
+
+# Regla crucial de subagentes
+
+- El usuario exige utilizar la mayor cantidad útil de subagentes para agilizar el trabajo.
+- Antes de una tarea con partes independientes, repartir análisis, implementación y auditoría entre los slots disponibles; respetar dependencias y recursos.
+- Cada encargo indica objetivo, alcance, archivos propios, dependencias, criterios de aceptación y evidencia esperada.
+- Cada agente lee AGENTS.md, las skills aplicables y el relevo vigente; conserva permisos, restricciones y decisiones del usuario. No amplía el alcance.
+- Un responsable por archivo durante edición. Usar copias/worktrees aislados si procede; coordinar cambios compartidos e integración.
+- Pruebas/compilaciones simultáneas solo con aislamiento comprobado de bases, puertos, procesos y artefactos (incluidos bin/obj y dist). Nunca usar la base personal.
+- El principal coordina contratos y revisa entregas; una revisión independiente verifica cambios de comportamiento antes del cierre.
+- No duplicar encargos para inflar el número de agentes ni atribuir revisiones no realizadas.
+- Si faltan slots/herramientas, comunicar el límite y continuar las partes autorizadas posibles. No simular delegación.
+- Registrar resultado, pruebas y pendientes en plan, checklist y relevo; la siguiente IA hereda esta regla junto con las demás.
+
+Ejemplo: backend define contrato/persistencia, frontend prepara interfaz sobre contrato acordado y QA revisa criterios/pruebas en paralelo; la integración final se verifica de forma coordinada.

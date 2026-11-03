@@ -342,12 +342,13 @@ export function Layout({ modoPortal }: { modoPortal?: ModoPortal } = {}) {
               </div>
               <div>
                 <h2 className="pie__titulo">{t('Atención y cotizaciones', 'Support & quotes')}</h2>
+                <p>{t('¿Preparamos su próximo evento?', 'Let’s plan your next event.')}</p>
                 <ul>
                   <li>
                     <Link to="/solicitar">{textos.solicitarCotizacion}</Link>
                   </li>
                   <li>
-                    <Link to="/preguntas">{textos.preguntasFrecuentes}</Link>
+                    <a href="https://wa.me/50685262096">WhatsApp · +506 8526 2096</a>
                   </li>
                 </ul>
               </div>

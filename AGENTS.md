@@ -4,6 +4,16 @@ Este archivo contiene las reglas permanentes y el ADN obligatorio del proyecto. 
 
 ---
 
+## Relevo entre sesiones e IA
+
+Al retomar, leer `tasks/RELEVO_IA.md` junto con los documentos iniciales obligatorios. Allí se conserva el alcance vigente, los planes descartados, el estado observado y el siguiente paso. Antes de un corte previsto o al cerrar un incremento, actualizar relevo, checklist y bitácora con evidencia. Revalidar Git y herramientas: el relevo no transfiere permisos ni acredita pruebas nuevas. Las propuestas históricas descartadas no son tareas pendientes.
+
+## Regla crucial: máximo paralelismo útil con subagentes
+
+Usar proactivamente la mayor cantidad de subagentes que permita avanzar en tareas independientes dentro de los recursos y límites disponibles. Dividir implementación, análisis y auditoría con responsables claros. Cada subagente debe leer las reglas y skills aplicables, conservar las decisiones vigentes y entregar evidencia; delegar no amplía permisos ni alcance.
+
+El principal asigna objetivo, dependencias, archivos y criterios de aceptación; evita escrituras simultáneas sobre los mismos archivos y coordina pruebas, procesos y bases compartidos. Solo paralelizar pruebas que tengan aislamiento comprobado. Integrar y verificar en orden de dependencias, con revisión independiente de cambios de comportamiento. No duplicar trabajo para aumentar el número de agentes. Ante falta de slots o herramientas, explicar el límite y continuar el trabajo autorizado que sí pueda avanzar. Detalle operativo: `.cursor/rules/subagentes-paralelismo.mdc`.
+
 ## 🧬 ADN de Personalidad, Comportamiento y Autonomía (HERENCIA OBLIGATORIA PARA CUALQUIER IA)
 
 Toda IA que abra o continúe este proyecto **DEBE heredar sin excepción el siguiente comportamiento**:

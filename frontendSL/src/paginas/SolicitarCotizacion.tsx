@@ -3,24 +3,50 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { api, ErrorApi, obtenerToken } from '../api/cliente';
 import type { Paquete, Perfil, PromocionTemporada, Solicitud, SolicitudCrear } from '../api/tipos';
 import { useAuth } from '../auth/contexto';
-import { Mensaje } from '../componentes/Estado';
+import { Cargando, Mensaje } from '../componentes/Estado';
 import { IconoCheck } from '../componentes/Iconos';
 import { useDatos } from '../hooks/useDatos';
 import { usePreferencias } from '../preferencias/PreferenciasContext';
 import { ahoraParaInput, formatoColones, formatoFechaHora } from '../utilidades/formato';
 import { validacionAccesible } from '../utilidades/formularios';
 import { FOTO_COTIZAR } from '../utilidades/fotos';
+import { crearMensajeWhatsApp, crearUrlWhatsApp, navegacionWhatsApp } from '../utilidades/whatsapp';
+import { guardarSolicitudPendiente, leerSolicitudPendiente, limpiarSolicitudPendiente, type IntentoSolicitud } from '../utilidades/solicitudPendiente';
 
 const TIPOS_EVENTO_ES = ['Boda', 'Quince años', 'Cumpleaños', 'Fiesta de empresa', 'Graduación', 'Aniversario'];
 const TIPOS_EVENTO_EN = ['Wedding', 'Sweet 15', 'Birthday', 'Corporate event', 'Graduation', 'Anniversary'];
 
 export function SolicitarCotizacion() {
   const { perfil, cargando } = useAuth();
+  if (cargando) return <Cargando />;
+  return <SolicitudDisponible key={perfil?.id ?? 'visitante'} perfil={perfil} />;
+}
+
+function SolicitudDisponible({ perfil }: { perfil: Perfil | null }) {
   const { t } = usePreferencias();
-  const [enviada, setEnviada] = useState<Solicitud | null>(null);
+  const actor = perfil?.id ?? 'visitante';
+  const [recuperacion] = useState(() => leerSolicitudPendiente(actor));
+  const [enviada, setEnviada] = useState<Solicitud | null>(recuperacion?.solicitud ?? null);
+  const [abrirAutomaticamente, setAbrirAutomaticamente] = useState(false);
+  const [sinRecuperacion, setSinRecuperacion] = useState(false);
+  const [formulario, setFormulario] = useState(0);
+
+  const guardada = (solicitud: Solicitud) => {
+    const persistida = guardarSolicitudPendiente(actor, { solicitud });
+    setSinRecuperacion(!persistida);
+    setAbrirAutomaticamente(persistida);
+    setEnviada(solicitud);
+  };
+  const reiniciar = () => {
+    limpiarSolicitudPendiente();
+    setAbrirAutomaticamente(false);
+    setSinRecuperacion(false);
+    setEnviada(null);
+    setFormulario((valor) => valor + 1);
+  };
 
   return (
-    <section className="seccion banda" aria-labelledby="titulo-cotizar">
+    <section className="seccion banda solicitud-cotizacion" aria-labelledby="titulo-cotizar">
       <img className="banda__foto" src={FOTO_COTIZAR} alt="" width={1800} height={1200} />
       <div className="contenedor banda__grid">
         <div className="encabezado encabezado--sin-margen">
@@ -30,8 +56,8 @@ export function SolicitarCotizacion() {
           </h1>
           <p className="intro">
             {t(
-              'Le enviaremos una cotización formal en colones costarricenses con el desglose técnico completo. Solicitarla no tiene ningún costo ni compromiso.',
-              'We will send you a formal quote in Costa Rican colones with the full technical breakdown. Requesting it is free and without obligation.',
+              'Guarde los datos de su evento y conversemos por WhatsApp. Solicitar una cotización no tiene costo ni compromiso.',
+              'Save your event details and continue on WhatsApp. Requesting a quote is free and without obligation.',
             )}
           </p>
           <ul className="ventajas">
@@ -46,48 +72,82 @@ export function SolicitarCotizacion() {
             <li>
               <IconoCheck />
               {t(
-                'Atención directa y propuesta formal enviada a su correo electrónico',
-                'Direct assistance and formal quote sent to your email address',
+                'Su solicitud queda registrada y continuamos la conversación por WhatsApp',
+                'Your request is saved and we continue the conversation on WhatsApp',
               )}
             </li>
           </ul>
         </div>
 
         {enviada ? (
-          <SolicitudEnviada solicitud={enviada} alReiniciar={() => setEnviada(null)} />
+          <SolicitudEnviada solicitud={enviada} alReiniciar={reiniciar} autoAbrir={abrirAutomaticamente} sinRecuperacion={sinRecuperacion} />
         ) : (
-          !cargando && <FormularioSolicitud key={perfil?.id ?? 'visitante'} perfil={perfil} alEnviar={setEnviada} />
+          <FormularioSolicitud key={formulario} perfil={perfil} actor={actor} enfocar={formulario > 0} intentoInicial={formulario === 0 ? recuperacion?.intento : undefined} alEnviar={guardada} />
         )}
       </div>
     </section>
   );
 }
 
-function SolicitudEnviada({ solicitud, alReiniciar }: { solicitud: Solicitud; alReiniciar: () => void }) {
-  const { t } = usePreferencias();
+function SolicitudEnviada({ solicitud, alReiniciar, autoAbrir, sinRecuperacion }: {
+  solicitud: Solicitud; alReiniciar: () => void; autoAbrir: boolean; sinRecuperacion: boolean;
+}) {
+  const { idioma, t } = usePreferencias();
   const titulo = useRef<HTMLHeadingElement>(null);
+  const aperturaIniciada = useRef(false);
+  const [aviso, setAviso] = useState('');
+  const mensaje = crearMensajeWhatsApp(solicitud, idioma);
+  const url = crearUrlWhatsApp(mensaje);
 
   useEffect(() => {
     titulo.current?.focus();
-  }, []);
+    if (autoAbrir && !aperturaIniciada.current) {
+      aperturaIniciada.current = true;
+      try {
+        navegacionWhatsApp.abrir(url);
+      } catch {
+        // La solicitud está guardada aunque el navegador no abra la aplicación.
+      }
+    }
+  }, [url, autoAbrir]);
+
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(mensaje);
+      setAviso(t('Resumen copiado.', 'Summary copied.'));
+    } catch {
+      setAviso(t('No se pudo copiar automáticamente. Seleccione el resumen para copiarlo.', 'Could not copy automatically. Select the summary to copy it.'));
+    }
+  };
 
   return (
-    <div className="formulario">
+    <div className="formulario formulario--cotizacion confirmacion-solicitud">
       <Mensaje tipo="exito">
         <h2 ref={titulo} tabIndex={-1} className="mensaje__titulo">
-          {t('¡Recibimos su solicitud!', 'We received your request!')}
+          {t('Solicitud guardada', 'Request saved')}
         </h2>
         <p>
-          {t('Solicitud', 'Request')} #{solicitud.id} ({formatoFechaHora(solicitud.fechaEvento)} · {solicitud.lugar}).{' '}
-          {t('Le enviaremos la propuesta formal a', 'We will send your formal quote to')}{' '}
-          <strong>{solicitud.correoContacto}</strong>.
+          <strong>{t('Solicitud', 'Request')} #{solicitud.id}</strong> ({formatoFechaHora(solicitud.fechaEvento)} · {solicitud.lugar}).{' '}
+          {t('Complete el envío en WhatsApp pulsando Enviar. Abrir el chat no confirma que el mensaje haya sido enviado.', 'Complete the submission in WhatsApp by pressing Send. Opening the chat does not confirm that the message was sent.')}
         </p>
       </Mensaje>
-      <div className="acciones">
-        <button type="button" className="boton boton--accion" onClick={alReiniciar}>
-          {t('Enviar otra solicitud', 'Submit another request')}
+      {sinRecuperacion && <Mensaje>{t('El navegador no permite recuperar esta pantalla al volver. Guarde la referencia antes de abrir WhatsApp.', 'Your browser cannot restore this screen when you return. Save the reference before opening WhatsApp.')}</Mensaje>}
+      <div className="campo">
+        <label htmlFor="resumen-whatsapp">{t('Resumen para WhatsApp', 'WhatsApp summary')}</label>
+        <textarea id="resumen-whatsapp" rows={9} readOnly value={mensaje} />
+      </div>
+      {aviso && <p role="status" className="campo__ayuda">{aviso}</p>}
+      <div className="acciones confirmacion-solicitud__principales">
+        <a className="boton boton--accion" href={url}>{t('Reabrir WhatsApp', 'Reopen WhatsApp')}</a>
+        <button type="button" className="boton boton--borde" onClick={copiar}>
+          {t('Copiar resumen', 'Copy summary')}
         </button>
-        <Link to="/paquetes" className="boton boton--borde">
+      </div>
+      <div className="acciones confirmacion-solicitud__secundarias">
+        <button type="button" className="boton boton--texto" onClick={alReiniciar}>
+          {t('Nueva solicitud', 'New request')}
+        </button>
+        <Link to="/paquetes" className="boton boton--texto">
           {t('Ver paquetes', 'View packages')}
         </Link>
       </div>
@@ -97,10 +157,13 @@ function SolicitudEnviada({ solicitud, alReiniciar }: { solicitud: Solicitud; al
 
 interface PropsFormulario {
   perfil: Perfil | null;
+  actor: string;
+  enfocar: boolean;
+  intentoInicial?: IntentoSolicitud;
   alEnviar: (solicitud: Solicitud) => void;
 }
 
-function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
+function FormularioSolicitud({ perfil, actor, enfocar, intentoInicial, alEnviar }: PropsFormulario) {
   const { idioma, t } = usePreferencias();
   const [parametros] = useSearchParams();
   const paquetes = useDatos<Paquete[]>('/api/paquetes');
@@ -111,18 +174,20 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
   const promocionParamId = parametros.get('promocion');
 
   const [datos, setDatos] = useState({
-    nombreContacto: perfil?.nombreCompleto ?? '',
-    correoContacto: perfil?.email ?? '',
-    telefonoContacto: perfil?.telefono ?? '',
-    paqueteId: parametros.get('paquete') ?? '',
-    tipoEvento: '',
-    fechaEvento: '',
-    lugar: '',
-    cantidadInvitados: '',
-    comentarios: '',
+    nombreContacto: intentoInicial?.cuerpo.nombreContacto ?? perfil?.nombreCompleto ?? '',
+    correoContacto: intentoInicial?.cuerpo.correoContacto ?? perfil?.email ?? '',
+    telefonoContacto: intentoInicial?.cuerpo.telefonoContacto ?? perfil?.telefono ?? '',
+    paqueteId: intentoInicial?.cuerpo.paqueteId?.toString() ?? parametros.get('paquete') ?? '',
+    tipoEvento: intentoInicial?.cuerpo.tipoEvento ?? '',
+    fechaEvento: intentoInicial?.cuerpo.fechaEvento ?? '',
+    lugar: intentoInicial?.cuerpo.lugar ?? '',
+    cantidadInvitados: intentoInicial?.cuerpo.cantidadInvitados?.toString() ?? '',
+    comentarios: intentoInicial?.cuerpo.comentarios ?? '',
   });
   const [enviando, setEnviando] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
+  const guardando = useRef(false);
+  const intento = useRef<IntentoSolicitud | null>(intentoInicial ?? null);
 
   useEffect(() => {
     if (errores.length > 0) {
@@ -150,32 +215,39 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
 
   const enviar = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (guardando.current) return;
+    guardando.current = true;
     setEnviando(true);
     setErrores([]);
 
-    let comentariosFinales = datos.comentarios.trim();
-    if (promoAplicable) {
-      const notaPromo = `[Promoción de temporada: ${promoAplicable.nombre} (-${promoAplicable.porcentajeDescuento}%)${
-        promoAplicable.codigoPromocional ? ` · Código: ${promoAplicable.codigoPromocional}` : ''
-      }]`;
-      if (!comentariosFinales.includes('[Promoción de temporada:')) {
-        comentariosFinales = comentariosFinales ? `${notaPromo} ${comentariosFinales}` : notaPromo;
-      }
-    }
-
-    const cuerpo: SolicitudCrear = {
-      nombreContacto: datos.nombreContacto.trim(),
-      correoContacto: datos.correoContacto.trim(),
-      telefonoContacto: datos.telefonoContacto.trim() || undefined,
-      paqueteId: datos.paqueteId ? Number(datos.paqueteId) : undefined,
-      tipoEvento: datos.tipoEvento.trim(),
-      fechaEvento: datos.fechaEvento,
-      lugar: datos.lugar.trim(),
-      cantidadInvitados: datos.cantidadInvitados ? Number(datos.cantidadInvitados) : undefined,
-      comentarios: comentariosFinales || undefined,
-    };
-
     try {
+      let comentariosFinales = datos.comentarios.trim();
+      if (promoAplicable) {
+        const notaPromo = `[Promoción de temporada: ${promoAplicable.nombre} (-${promoAplicable.porcentajeDescuento}%)${
+          promoAplicable.codigoPromocional ? ` · Código: ${promoAplicable.codigoPromocional}` : ''
+        }]`;
+        if (!comentariosFinales.includes('[Promoción de temporada:')) {
+          comentariosFinales = comentariosFinales ? `${notaPromo} ${comentariosFinales}` : notaPromo;
+        }
+      }
+
+      const cuerpo: SolicitudCrear = {
+        nombreContacto: datos.nombreContacto.trim(),
+        correoContacto: datos.correoContacto.trim() || undefined,
+        telefonoContacto: datos.telefonoContacto.trim() || undefined,
+        paqueteId: datos.paqueteId ? Number(datos.paqueteId) : undefined,
+        tipoEvento: datos.tipoEvento.trim(),
+        fechaEvento: datos.fechaEvento,
+        lugar: datos.lugar.trim(),
+        cantidadInvitados: datos.cantidadInvitados ? Number(datos.cantidadInvitados) : undefined,
+        comentarios: comentariosFinales || undefined,
+      };
+      const huella = JSON.stringify(cuerpo);
+      if (intento.current?.huella !== huella) {
+        intento.current = { huella, clave: crypto.randomUUID(), cuerpo };
+      }
+      cuerpo.claveIdempotencia = intento.current.clave;
+
       if (perfil && !obtenerToken()) {
         throw new ErrorApi(401, [
           t(
@@ -185,14 +257,17 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
         ]);
       }
 
+      guardarSolicitudPendiente(actor, { intento: intento.current });
       alEnviar(await api.post<Solicitud>('/api/solicitudes', cuerpo));
     } catch (error) {
       setErrores(
         error instanceof ErrorApi
           ? error.mensajes
-          : [t('No se pudo enviar la solicitud. Intente de nuevo.', 'Could not submit the request. Please try again.')],
+          : [t('No se pudo guardar la solicitud. Intente de nuevo.', 'Could not save the request. Please try again.')],
       );
       setEnviando(false);
+    } finally {
+      guardando.current = false;
     }
   };
 
@@ -200,13 +275,19 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
   const tiposEvento = idioma === 'en' ? TIPOS_EVENTO_EN : TIPOS_EVENTO_ES;
 
   return (
-    <form className="formulario" onSubmit={enviar}>
-      <h2 className="formulario__titulo">{t('Datos del evento', 'Event details')}</h2>
+    <form className="formulario formulario--cotizacion" onSubmit={enviar} aria-labelledby="titulo-solicitud" aria-describedby="ayuda-solicitud">
+      <div className="formulario__cabecera">
+        <h2 id="titulo-solicitud" className="formulario__titulo">{t('Su solicitud', 'Your request')}</h2>
+        <p id="ayuda-solicitud" className="campo__ayuda">{t(
+          'Guardamos su solicitud antes de abrir WhatsApp. Allí podrá revisar el mensaje y pulsar Enviar.',
+          'We save your request before opening WhatsApp. You can then review the message and press Send.',
+        )}</p>
+      </div>
       {perfil && (
         <Mensaje>
           {t(
-            'Está enviando la solicitud con su cuenta; podrá darle seguimiento desde “Mi cuenta”.',
-            'You are submitting this request with your account; you can track it in “My account”.',
+            'La solicitud quedará vinculada a su cuenta y el equipo podrá darle seguimiento.',
+            'The request will be linked to your account so our team can follow up.',
           )}
         </Mensaje>
       )}
@@ -225,6 +306,8 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
         </Mensaje>
       )}
 
+      <fieldset className="grupo-campos">
+        <legend>{t('Contacto', 'Contact')}</legend>
       <div className="campo">
         <label htmlFor="nombre">{t('Nombre completo', 'Full name')}</label>
         <input
@@ -233,6 +316,7 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
           required
           maxLength={150}
           autoComplete="name"
+          autoFocus={enfocar}
           aria-errormessage="nombre-error"
           {...validacionAccesible}
           value={datos.nombreContacto}
@@ -245,12 +329,11 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
 
       <div className="fila">
         <div className="campo">
-          <label htmlFor="correo">{t('Correo electrónico', 'Email address')}</label>
+          <label htmlFor="correo">{t('Correo electrónico (opcional)', 'Email address (optional)')}</label>
           <input
             id="correo"
             name="correoContacto"
             type="email"
-            required
             maxLength={256}
             autoComplete="email"
             spellCheck={false}
@@ -268,20 +351,30 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
         </div>
 
         <div className="campo">
-          <label htmlFor="telefono">{t('Teléfono (opcional)', 'Phone number (optional)')}</label>
+          <label htmlFor="telefono">{t('Teléfono de contacto', 'Contact phone number')}</label>
           <input
             id="telefono"
             name="telefonoContacto"
             type="tel"
+            required
+            pattern={'[+0-9\\(\\) .\\-]{7,30}'}
             inputMode="tel"
             maxLength={30}
             autoComplete="tel"
+            aria-describedby="telefono-ayuda"
+            aria-errormessage="telefono-error"
+            {...validacionAccesible}
             value={datos.telefonoContacto}
             onChange={(e) => cambiar('telefonoContacto', e.target.value)}
           />
+          <p id="telefono-ayuda" className="campo__ayuda">{t('Para contactarle si no completa el mensaje.', 'So we can contact you if you do not send the message.')}</p>
+          <p id="telefono-error" className="campo__error">{t('Revise el teléfono: use números y, si corresponde, el código de país.', 'Check the phone number: use digits and the country code when needed.')}</p>
         </div>
       </div>
+      </fieldset>
 
+      <fieldset className="grupo-campos">
+        <legend>{t('El evento', 'The event')}</legend>
       <div className="campo">
         <label htmlFor="paquete">{t('Paquete que le interesa', 'Package of interest')}</label>
         <select
@@ -368,7 +461,7 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
         </div>
 
         <div className="campo">
-          <label htmlFor="invitados">{t('Cantidad estimada de invitados (opcional)', 'Estimated guests (optional)')}</label>
+          <label htmlFor="invitados">{t('Invitados estimados (opcional)', 'Estimated guests (optional)')}</label>
           <input
             id="invitados"
             name="cantidadInvitados"
@@ -387,15 +480,19 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
           </p>
         </div>
       </div>
+      </fieldset>
 
+      <fieldset className="grupo-campos">
+        <legend>{t('Detalles adicionales', 'Additional details')}</legend>
       <div className="campo">
-        <label htmlFor="comentarios">{t('Comentarios o requerimientos especiales (opcional)', 'Comments or special requirements (optional)')}</label>
+        <label htmlFor="comentarios">{t('Comentarios (opcional)', 'Comments (optional)')}</label>
         <textarea
           id="comentarios"
           name="comentarios"
           rows={4}
           maxLength={2000}
           autoComplete="off"
+          aria-describedby="comentarios-ayuda"
           placeholder={t(
             'Géneros musicales preferidos, horario de montaje, condiciones del salón o detalles importantes…',
             'Preferred music genres, setup schedule, venue conditions, or important details…',
@@ -403,11 +500,14 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
           value={datos.comentarios}
           onChange={(e) => cambiar('comentarios', e.target.value)}
         />
+        <p id="comentarios-ayuda" className="campo__ayuda">{t('Puede incluir música preferida, montaje o necesidades del lugar.', 'You can include music preferences, setup or venue requirements.')}</p>
       </div>
+      </fieldset>
 
       {errores.length > 0 && (
-        <div ref={cajaErrores} tabIndex={-1}>
+        <div ref={cajaErrores} tabIndex={-1} role="region" className="formulario__errores" aria-labelledby="titulo-errores-solicitud">
           <Mensaje tipo="error">
+            <h3 id="titulo-errores-solicitud" className="formulario__error-titulo">{t('No pudimos guardar la solicitud', 'We could not save your request')}</h3>
             {errores.map((m) => (
               <p key={m}>{m}</p>
             ))}
@@ -416,7 +516,7 @@ function FormularioSolicitud({ perfil, alEnviar }: PropsFormulario) {
       )}
 
       <button type="submit" className="boton boton--accion boton--ancho" disabled={enviando}>
-        {enviando ? t('Enviando…', 'Submitting…') : t('Enviar solicitud', 'Submit quote request')}
+        {enviando ? t('Guardando…', 'Saving…') : t('Guardar y abrir WhatsApp', 'Save and open WhatsApp')}
       </button>
     </form>
   );

@@ -33,13 +33,26 @@ public class SolicitudesController : ControllerBase
 
         try
         {
-            var creada = await _solicitudes.CrearAsync(dto, clienteId);
+            var creada = await _solicitudes.CrearAsync(dto, clienteId, UsuarioId());
             return CreatedAtAction(nameof(ObtenerPorId), new { id = creada.Id }, creada);
+        }
+        catch (ConflictoIdempotenciaException ex)
+        {
+            return Conflict(new ProblemDetails { Status = 409, Title = ex.Message });
         }
         catch (DatosInvalidosException ex)
         {
             return DatosInvalidos(ex);
         }
+    }
+
+    // Confirmación manual de recepción; nunca cambia el estado comercial.
+    [HttpPost("{id:int}/whatsapp-recibido")]
+    [Authorize(Roles = RolesAdmin)]
+    public async Task<ActionResult<SolicitudDto>> MarcarWhatsAppRecibido(int id)
+    {
+        var solicitud = await _solicitudes.MarcarWhatsAppRecibidoAsync(id, UsuarioId()!);
+        return solicitud is null ? NotFound() : Ok(solicitud);
     }
 
     // GET api/solicitudes?estado=Pendiente → todas, más recientes primero (solo admin)

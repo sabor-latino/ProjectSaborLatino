@@ -55,7 +55,7 @@ export function TarjetaPaquete({
 
       <div className="paquete__cuerpo">
         <h3>{nombre}</h3>
-        {descripcion && <p>{descripcion}</p>}
+        {descripcion && <p className="paquete__descripcion">{descripcion}</p>}
 
         {paquete.equipos.length > 0 && (
           <ul className="equipo" aria-label={t('Equipo incluido', 'Included equipment')}>
