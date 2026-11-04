@@ -1,6 +1,7 @@
 import type { DiccionarioEstatico } from '../tipos';
 
 export const diccionarioPt: DiccionarioEstatico = {
+  // Navegação e acessibilidade
   saltarContenido: 'Pular para o conteúdo principal',
   inicio: 'Início',
   paquetes: 'Pacotes',
@@ -16,9 +17,86 @@ export const diccionarioPt: DiccionarioEstatico = {
   crearCuenta: 'Criar conta',
   preguntasFrecuentes: 'Perguntas frequentes',
   esloganPie: 'Karaokê, música ao vivo, animação e som profissional para suas celebrações na Costa Rica.',
-  'Galería de eventos': 'Galeria de eventos',
-  'Así se viven nuestras noches en vivo': 'Assim são as nossas noites ao vivo',
-  'Cargando galería…': 'Carregando galeria…',
+  'Síganos en redes': 'Siga-nos',
+  'Atención y cotizaciones': 'Atendimento e orçamentos',
+  '¿Preparamos su próximo evento?': 'Vamos planejar seu próximo evento?',
+  'Todos los derechos reservados.': 'Todos os direitos reservados.',
+  'Preferencias de idioma y accesibilidad': 'Preferências de idioma e acessibilidade',
+  'Opciones de idioma': 'Opções de idioma',
+  'Opciones de tamaño de fuente': 'Opções de tamanho de fonte',
+  'Opciones de contraste': 'Opções de contraste',
+  'Cerrar menú': 'Fechar menu',
+  'Abrir menú': 'Abrir menu',
+  'Navegación principal': 'Navegação principal',
+  'Sitio público ↗': 'Site público ↗',
+
+  // Hero e Portada
+  'Bodas · Quince años · Aniversarios · Eventos corporativos': 'Casamentos · Festas de 15 anos · Aniversários · Eventos corporativos',
+  'Producción musical y técnica en Costa Rica': 'Produção musical e técnica na Costa Rica',
+  'Que su fiesta suene en vivo': 'Faça sua festa vibrar com música ao vivo',
+  'La energía de la música en vivo y el sonido profesional para su evento': 'A energia da música ao vivo e do som profissional para o seu evento',
+  'Orquesta en vivo, grupos musicales, DJ Open Format, karaoke y sonorización integral con especificaciones técnicas claras para bodas, graduaciones y eventos corporativos.':
+    'Orquestra ao vivo, conjuntos musicais, DJ Open Format, karaokê e sonorização integral com especificações técnicas claras para casamentos, formaturas e eventos corporativos.',
+  'Karaoke interactivo, marimba, discomóvil, orquesta e iluminación escénica en toda Costa Rica. Usted elige el paquete ideal; nosotros llevamos el espectáculo, la ingeniería de sonido y el personal técnico.':
+    'Karaokê interativo, marimba, som automotivo/DJ, orquestra e iluminação de palco em toda a Costa Rica. Você escolhe o pacote ideal; nós levamos o show, a engenharia de áudio e a equipe técnica.',
+  'Solicitar cotización': 'Solicitar orçamento',
+  'Ver paquetes y especificaciones': 'Ver pacotes e especificações',
+  'paquetes disponibles': 'pacotes disponíveis',
+  'inversión desde': 'investimento a partir de',
+  'Montaje': 'Montagem',
+  'e ingeniería incluidos': 'e engenharia inclusos',
+  'Fotografía de referencia': 'Fotografia de referência',
+
+  // Etapas "Como funciona"
+  'Cómo funciona': 'Como funciona',
+  'Tres pasos y a celebrar': 'Três passos para comemorar',
+  '1. Explore el catálogo y sus fichas técnicas': '1. Explore o catálogo e as fichas técnicas',
+  'Compare paquetes, potencia de audio, cobertura de aforo, tiempos de montaje y lista detallada de equipos incluidos.':
+    'Compare pacotes, potência sonora, capacidade de público, tempos de montagem e lista detalhada de equipamentos inclusos.',
+  '2. Solicite su cotización en minutos': '2. Solicite seu orçamento em minutos',
+  'Indique la fecha, lugar, cantidad de invitados y el paquete de su interés; aplicamos promociones de temporada y descuentos de fidelidad.':
+    'Informe data, local, número de convidados e o pacote de interesse; aplicamos promoções de temporada e descontos de fidelidade.',
+  '3. Confirmación y montaje puntual': '3. Confirmação e montagem pontual',
+  'Coordinamos nuestro equipo técnico y musical con antelación para que usted solo se dedique a disfrutar de la celebración.':
+    'Coordenamos nossa equipe técnica e musical com antecedência para que você só se preocupe em curtir a festa.',
+  'Cuéntenos sobre su evento': 'Conte-nos sobre o seu evento',
+  'Indique la fecha, el lugar, el aforo estimado y el paquete de entretenimiento que más le interesa.':
+    'Informe a data, o local, o número estimado de convidados e o pacote que mais lhe interessa.',
+  'Reciba su cotización formal': 'Receba sua proposta formal',
+  'Le enviamos una propuesta detallada en colones con el desglose técnico de audio, iluminación y horas de servicio.':
+    'Enviamos uma proposta detalhada em colones com o detalhamento técnico de áudio, iluminação e horas de serviço.',
+  'Disfrute la celebración': 'Aproveite a celebração',
+  'Nuestro equipo técnico llega con anticipación para el montaje y la prueba acústica, garantizando sonido impecable de principio a fin.':
+    'Nossa equipe técnica chega com antecedência para montagem e passagem de som, garantindo som impecável do início ao fim.',
+
+  // Promoções de temporada
+  'Ofertas por tiempo limitado': 'Ofertas por tempo limitado',
+  'Promociones de Temporada': 'Promoções de Temporada',
+  'Reserve su fecha durante la vigencia de nuestras campañas de temporada y obtenga tarifas preferenciales en paquetes seleccionados.':
+    'Reserve sua data durante nossas campanhas sazonais e garanta tarifas especiais em pacotes selecionados.',
+  'Fin de Año y Graduaciones': 'Fim de Ano e Formaturas',
+  'Temporada de Fin de Año y Graduaciones': 'Temporada de Fim de Ano e Formaturas',
+  'Descuento especial de temporada en producción musical en vivo y DJ Open Format para fiestas empresariales, bailes de graduación y celebraciones de fin de año.':
+    'Desconto especial de temporada em produção musical ao vivo e pacotes com DJ Open Format para confraternizações corporativas e bailes de formatura.',
+  'Temporada de Bodas': 'Temporada de Casamentos',
+  'Especial Bodas y Recepciones': 'Especial Casamentos e Recepções',
+  'Tarifa preferencial en música en vivo con Villa Guanacaste y sonorización profesional para bodas civiles, religiosas y recepciones familiares.':
+    'Tarifa preferencial em música ao vivo com Villa Guanacaste e sonorização profissional para casamentos civis, religiosos e recepções familiares.',
+  'Temporada especial': 'Temporada especial',
+  'Código promocional:': 'Código promocional:',
+  'Válida hasta el': 'Válida até',
+  'Paquetes incluidos': 'Pacotes inclusos',
+  'Aprovechar promoción': 'Aproveitar promoção',
+
+  // Catálogo e pacotes
+  'Catálogo de paquetes': 'Catálogo de pacotes',
+  'Elija cómo quiere que suene su evento': 'Escolha como você quer que seu evento soe',
+  'Ver todos los paquetes →': 'Ver todos os pacotes →',
+  'Todos los paquetes': 'Todos os pacotes',
+  'Todos los servicios': 'Todos os serviços',
+  'Aspectos técnicos destacados': 'Destaques técnicos',
+  '4 horas de música incluidas · Hora adicional disponible': '4 horas de música incluídas · Hora adicional disponível',
+  'Equipo incluido': 'Equipamentos inclusos',
   'Especificaciones técnicas y montaje': 'Especificações técnicas e montagem',
   'Potencia acústica': 'Potência acústica',
   'Cobertura sugerida': 'Capacidade sugerida',
@@ -26,6 +104,114 @@ export const diccionarioPt: DiccionarioEstatico = {
   'Energía requerida': 'Energia necessária',
   'Espacio mínimo': 'Espaço mínimo',
   'Detalle técnico de equipos': 'Detalhes técnicos dos equipamentos',
-  'Cotizar': 'Pedir orçamento',
+  'Precio de temporada': 'Preço de temporada',
   'Desde': 'A partir de',
+  'desde': 'a partir de',
+  'Cotizar': 'Pedir orçamento',
+  '⚡ Alta fidelidad': '⚡ Alta fidelidade',
+  '💍 Recomendado para bodas': '💍 Recomendado para casamentos',
+  '⭐ Más cotizado': '⭐ Mais pedido',
+  '📺 Pantalla LED 55" Full HD': '📺 Tela LED 55" Full HD',
+  'Pantalla LED 55" Full HD': 'Tela LED 55" Full HD',
+
+  // Nomes e descrições
+  'Karaoke': 'Karaokê',
+  'Música en vivo': 'Música ao vivo',
+  'Sonido': 'Sonorização',
+  'Sonorización para grupos o DJs': 'Sonorização para bandas ou DJs',
+  'DJ Open Format': 'DJ Open Format',
+  'Grupo secuenciado Villa Guanacaste': 'Banda sequenciada Villa Guanacaste',
+  'Marimba Orquesta Son del Gallo (en vivo)': 'Marimba Orquestra Son del Gallo (ao vivo)',
+  'Precio base. Servicio profesional de sonorización para grupos musicales o DJs con cobertura hasta para 500 personas. Incluye consola de sonido, monitoreo in-ear inalámbrico, iluminación completa de escenario, máquina de humo y técnico especializado de audio e iluminación.':
+    'Preço base. Sonorização profissional para grupos musicais ou DJs com cobertura para até 500 pessoas. Inclui mesa de som, fones in-ear sem fio, iluminação de palco, máquina de fumaça e técnico especializado.',
+  'Precio base. Animación profesional con DJ Open Format, sonido estándar con dos subbajos y dos medios, dos micrófonos inalámbricos, una pantalla e iluminación completa de escenario. El servicio de karaoke se puede incluir como un extra.':
+    'Preço base. Animação profissional com DJ Open Format, som padrão com 2 subwoofers e 2 caixas de médios, 2 microfones sem fio, tela e iluminação de palco. O karaokê pode ser incluído como extra.',
+  'Precio base. Presentación musical en vivo del grupo secuenciado Villa Guanacaste, con sistema de sonido adaptativo según el recinto e iluminación profesional completa de escenario.':
+    'Preço base. Show musical ao vivo com o grupo Villa Guanacaste, com som adaptativo ao ambiente e iluminação de palco completa.',
+  'Presentación de gran formato con marimba orquesta completa en vivo, ideal para fiestas patronales, graduaciones y celebraciones masivas con repertorio costarricense y latinoamericano.':
+    'Show em grande formato com orquestra de marimba completa ao vivo, ideal para festas tradicionais, formaturas e grandes celebrações com repertório latino-americano.',
+
+  // Equipamentos
+  'Consola de sonido': 'Mesa de som',
+  'Luces de ambiente': 'Luzes de ambiente',
+  'Máquina de humo': 'Máquina de fumaça',
+  'Monitor in-ear inalámbrico': 'Monitor intra-auricular sem fio',
+  'Parlante activo': 'Caixa ativa',
+  'Subbajo': 'Subwoofer',
+  'Micrófono inalámbrico': 'Microfone sem fio',
+  'Pantalla para karaoke': 'Tela para karaokê',
+
+  // Seção CTA
+  '¿Listo para ponerle ritmo a su próximo evento?': 'Pronto para animar o seu próximo evento?',
+  'Envíenos los datos de su actividad y reciba una propuesta formal adaptada a su recinto y presupuesto.':
+    'Envie-nos os dados da sua celebração e receba uma proposta formal adaptada ao seu espaço e orçamento.',
+  'Cotización transparente en colones costarricenses': 'Orçamento transparente em colones costarriquenhos',
+  'Transporte, montaje y prueba acústica incluidos': 'Transporte, montagem e teste acústico inclusos',
+  'Solicitud registrada y atención personalizada por WhatsApp': 'Solicitação registrada e atendimento direto no WhatsApp',
+  'Ver preguntas frecuentes': 'Ver perguntas frequentes',
+  'Aparte su fecha antes de que se agote la agenda': 'Reserve sua data antes que a agenda fique cheia',
+  'Solicitar su cotización personalizada no tiene ningún costo ni compromiso.': 'Solicitar um orçamento personalizado é totalmente gratuito e sem compromisso.',
+
+  // Galeria e FAQ
+  'Galería de eventos': 'Galeria de eventos',
+  'Así se viven nuestras noches': 'Assim são as nossas noites',
+  'Así se viven nuestras noches en vivo': 'Assim são as nossas noites ao vivo',
+  'Cada montaje se adapta a la arquitectura del lugar, el aforo y el estilo musical de sus invitados.':
+    'Cada montagem é planejada conforme o espaço, a quantidade de convidados e o estilo musical do evento.',
+  'Cargando galería…': 'Carregando galeria…',
+  'Ver la galería →': 'Ver a galeria →',
+  'Fotos de ejemplo': 'Fotos de exemplo',
+  'La pista llena': 'Pista de dança lotada',
+  'Show de karaoke con pantalla Full HD': 'Show de karaokê com tela Full HD',
+  'Sonorización profesional e iluminación DMX': 'Sonorização profissional e iluminação DMX',
+  'Todo lo que debe saber antes de cotizar': 'Tudo o que você precisa saber antes de pedir um orçamento',
+  'Resolvemos las consultas más habituales sobre horarios de montaje, cobertura geográfica, requerimientos eléctricos y personalización de repertorio.':
+    'Respondemos às dúvidas mais comuns sobre horários de montagem, área de atendimento, requisitos elétricos e escolha de repertório.',
+  'Cargando preguntas…': 'Carregando perguntas…',
+
+  // Formulário /solicitar
+  'Cuéntenos sobre su celebración': 'Conte-nos sobre a sua festa',
+  'Guarde los datos de su evento y conversemos por WhatsApp. Solicitar una cotización no tiene costo ni compromiso.':
+    'Salve os dados do seu evento e conversaremos pelo WhatsApp. Pedir um orçamento é gratuito e sem compromisso.',
+  'Su solicitud': 'Sua solicitação',
+  'Guardamos su solicitud antes de abrir WhatsApp. Allí podrá revisar el mensaje y pulsar Enviar.':
+    'Salvamos seu pedido antes de abrir o WhatsApp. Lá você poderá revisar a mensagem e clicar em Enviar.',
+  'Contacto': 'Contato',
+  'Nombre completo': 'Nome completo',
+  'Escriba su nombre completo.': 'Digite seu nome completo.',
+  'Correo electrónico (opcional)': 'E-mail (opcional)',
+  'Escriba un correo electrónico válido, por ejemplo nombre@correo.com.':
+    'Digite um e-mail válido, por exemplo nome@provedor.com.',
+  'Teléfono de contacto': 'Telefone de contato',
+  'Para contactarle si no completa el mensaje.': 'Para podermos contatá-lo caso não envie a mensagem.',
+  'Revise el teléfono: use números y, si corresponde, el código de país.':
+    'Confira o telefone: use dígitos e o código do país se necessário.',
+  'El evento': 'O evento',
+  'Paquete que le interesa': 'Pacote de interesse',
+  'Todavía no sé / deseo asesoría técnica': 'Ainda não sei / Gostaria de orientação técnica',
+  'Tipo de evento': 'Tipo de evento',
+  'Boda, quince años, corporativo…': 'Casamento, festa de 15 anos, corporativo…',
+  'Indique el tipo de evento.': 'Informe o tipo de evento.',
+  'Fecha y hora': 'Data e hora',
+  'Lugar del evento': 'Local do evento',
+  'Event venue / location': 'Local do evento',
+  'Aforo estimado (opcional)': 'Número estimado de convidados (opcional)',
+  'Detalles adicionales': 'Detalhes adicionais',
+  'Comentarios (opcional)': 'Comentários (opcional)',
+  'Puede incluir preferencias musicales, condiciones del recinto o requerimientos especiales.':
+    'Você pode incluir preferências musicais, condições do local ou necessidades especiais.',
+  'Guardar y abrir WhatsApp': 'Salvar e abrir o WhatsApp',
+  '⛺ Requisito obligatorio para exteriores:': '⛺ Requisito obrigatório para exteriores:',
+  'Para eventos al aire libre o jardín, se requiere de forma obligatoria tarima techada e impermeable para salvaguardar los equipos electrónicos de sonido e iluminación.':
+    'Para eventos ao ar livre ou em jardins, é obrigatório palco coberto e impermeável para proteger os equipamentos eletrônicos de som e iluminação.',
+  "¿Qué requerimientos eléctricos y de espacio necesitan en el lugar del evento?": "Quais são os requisitos elétricos e de espaço necessários no local do evento?",
+  "Para formatos DJ y grupos medianos requerimos al menos un circuito estable de 110V / 20A con conexión a tierra a menos de 15 metros del escenario y un área mínima de 3x2 m. Para la Marimba Orquesta o sonorizaciones grandes recomendamos dos circuitos independientes de 110V / 20A y un espacio techado de 6x4 m.": "Para formatos com DJ e bandas médias, necessitamos de pelo menos um circuito aterrado de 110V / 20A a menos de 15 metros do palco e área mínima de 3x2 m. Para a Orquestra de Marimba ou grandes estruturas, recomendamos dois circuitos independentes de 110V / 20A e palco coberto de 6x4 m.",
+  "¿Con cuánta anticipación llega el equipo técnico para el montaje y prueba de sonido?": "Com quanta antecedência a equipe técnica chega para montagem e passagem de som?",
+  "Nuestro personal técnico ingresa entre 60 y 150 minutos antes de la hora de inicio según la complejidad del paquete contratado, garantizando que el montaje y la prueba de sonido concluyan antes de la llegada de sus invitados.": "Nossa equipe chega entre 60 e 150 minutos antes do início conforme a complexidade do pacote, garantindo que montagem e som estejam prontos antes da chegada dos convidados.",
+  "¿Los paquetes incluyen transporte, montaje y operador de audio?": "Os pacotes incluem transporte, montagem e operador de áudio?",
+  "Sí. Todos nuestros paquetes incluyen el montaje, desmontaje y operación técnica durante el evento. El costo base cubre el Gran Área Metropolitana (GAM); para eventos fuera del GAM se calcula el rubro logístico en la cotización formal.": "Sim. Todos os nossos pacotes incluem montagem, desmontagem e operação técnica ao vivo. O valor base cobre a Grande Área Metropolitana (GAM); para outras regiões, calculamos a logística no orçamento.",
+  "¿Cómo funcionan las promociones de temporada y el descuento de cliente frecuente?": "Como funcionam as promoções de temporada e o desconto de cliente frequente?",
+  "Durante el año activamos campañas de temporada con descuentos porcentuales directos sobre paquetes seleccionados. Además, los clientes registrados que acumulan el mínimo de eventos finalizados reciben automáticamente nuestra tarifa preferencial de fidelidad al cotizar.": "Ao longo do ano, ativamos campanhas com descontos percentuais diretos em pacotes selecionados. Além disso, clientes cadastrados com histórico de eventos recebem automaticamente nossa tarifa fidelidade ao cotar.",
+  "¿Se puede personalizar el repertorio musical o agregar karaoke a cualquier paquete?": "É possível personalizar o repertório musical ou adicionar karaokê a qualquer pacote?",
+  "Por supuesto. Coordinamos previamente los géneros musicales, canciones especiales para protocolo o baile principal y podemos integrar el sistema de karaoke con pantalla Full HD y micrófonos inalámbricos a su celebración.": "Com certeza. Alinhamos previamente os estilos musicais, músicas para momentos especiais e podemos integrar o sistema de karaokê com tela Full HD e microfones sem fio à sua festa.",
 };

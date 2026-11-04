@@ -6,15 +6,19 @@ import { useAuth } from '../auth/contexto';
 import { Cargando, Mensaje } from '../componentes/Estado';
 import { IconoCheck } from '../componentes/Iconos';
 import { useDatos } from '../hooks/useDatos';
-import { usePreferencias } from '../preferencias/PreferenciasContext';
+import { usePreferencias, type Idioma } from '../preferencias/PreferenciasContext';
 import { ahoraParaInput, formatoColones, formatoFechaHora } from '../utilidades/formato';
 import { validacionAccesible } from '../utilidades/formularios';
 import { FOTO_COTIZAR } from '../utilidades/fotos';
 import { crearMensajeWhatsApp, crearUrlWhatsApp, navegacionWhatsApp } from '../utilidades/whatsapp';
 import { guardarSolicitudPendiente, leerSolicitudPendiente, limpiarSolicitudPendiente, type IntentoSolicitud } from '../utilidades/solicitudPendiente';
 
-const TIPOS_EVENTO_ES = ['Boda', 'Quince años', 'Cumpleaños', 'Fiesta de empresa', 'Graduación', 'Aniversario'];
-const TIPOS_EVENTO_EN = ['Wedding', 'Sweet 15', 'Birthday', 'Corporate event', 'Graduation', 'Anniversary'];
+const TIPOS_EVENTO: Record<Idioma, string[]> = {
+  es: ['Boda', 'Quince años', 'Cumpleaños', 'Fiesta de empresa', 'Graduación', 'Aniversario'],
+  en: ['Wedding', 'Sweet 15', 'Birthday', 'Corporate event', 'Graduation', 'Anniversary'],
+  fr: ['Mariage', 'Fête des 15 ans', 'Anniversaire', 'Événement d’entreprise', 'Remise de diplômes', 'Anniversaire de mariage'],
+  pt: ['Casamento', 'Festa de 15 anos', 'Aniversário', 'Evento corporativo', 'Formatura', 'Bodas / Aniversário'],
+};
 
 export function SolicitarCotizacion() {
   const { perfil, cargando } = useAuth();
@@ -272,7 +276,7 @@ function FormularioSolicitud({ perfil, actor, enfocar, intentoInicial, alEnviar 
   };
 
   const listaPaquetes = Array.isArray(paquetes.datos) ? paquetes.datos : [];
-  const tiposEvento = idioma === 'en' ? TIPOS_EVENTO_EN : TIPOS_EVENTO_ES;
+  const tiposEvento = TIPOS_EVENTO[idioma] ?? TIPOS_EVENTO.es;
 
   return (
     <form className="formulario formulario--cotizacion" onSubmit={enviar} aria-labelledby="titulo-solicitud" aria-describedby="ayuda-solicitud">
@@ -295,7 +299,7 @@ function FormularioSolicitud({ perfil, actor, enfocar, intentoInicial, alEnviar 
       {promoAplicable && (
         <Mensaje tipo="exito">
           <strong>
-            {idioma === 'en' && promoAplicable.nombreEn ? promoAplicable.nombreEn : promoAplicable.nombre} (-
+            {t(promoAplicable.nombre, promoAplicable.nombreEn)} (-
             {promoAplicable.porcentajeDescuento}%)
           </strong>
           {promoAplicable.codigoPromocional ? ` · ${t('Código:', 'Code:')} ${promoAplicable.codigoPromocional}` : ''} —{' '}
@@ -385,7 +389,7 @@ function FormularioSolicitud({ perfil, actor, enfocar, intentoInicial, alEnviar 
         >
           <option value="">{t('Todavía no sé / deseo asesoría técnica', 'Not sure yet / I would like advice')}</option>
           {listaPaquetes.map((p) => {
-            const nombrePk = idioma === 'en' && p.nombreEn ? p.nombreEn : p.nombre;
+            const nombrePk = t(p.nombre, p.nombreEn);
             return (
               <option key={p.id} value={p.id}>
                 {nombrePk} — {t('desde', 'from')} {formatoColones(p.precioBase)}

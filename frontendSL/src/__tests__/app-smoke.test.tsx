@@ -178,6 +178,20 @@ describe('Sabor Latino — Accesibilidad WCAG AAA, Idioma ES/EN, Paquetes Técni
     expect(screen.getByText(/Graduation & Year-End Special/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Imperial Gala Package/i).length).toBeGreaterThan(0);
     expect(await screen.findByRole('img', { name: 'A full dance floor' })).toBeInTheDocument();
+
+    // Verificar cambio de idioma EN -> FR
+    const botonFrances = screen.getByRole('button', { name: /\(FR\)/i });
+    fireEvent.click(botonFrances);
+    expect(document.documentElement.lang).toBe('fr');
+    expect(await screen.findByText(/Donnez vie à votre célébration avec de la musique live/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Demander un devis/i).length).toBeGreaterThan(0);
+
+    // Verificar cambio de idioma FR -> PT
+    const botonPortugues = screen.getByRole('button', { name: /\(PT\)/i });
+    fireEvent.click(botonPortugues);
+    expect(document.documentElement.lang).toBe('pt');
+    expect(await screen.findByText(/Faça sua festa vibrar com música ao vivo/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Solicitar orçamento/i).length).toBeGreaterThan(0);
   });
 
   it('oculta las rutas /login y /panel en el portal público (muestra 404) y habilita el Portal Administrativo en modo admin', async () => {

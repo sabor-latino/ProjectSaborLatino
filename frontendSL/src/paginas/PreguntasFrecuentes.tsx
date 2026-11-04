@@ -5,7 +5,7 @@ import { useDatos } from '../hooks/useDatos';
 import { usePreferencias } from '../preferencias/PreferenciasContext';
 
 export function PreguntasFrecuentes() {
-  const { idioma, t } = usePreferencias();
+  const { t } = usePreferencias();
   const { datos, cargando, error } = useDatos<PreguntaFrecuente[]>('/api/preguntas-frecuentes');
 
   return (
@@ -35,8 +35,8 @@ export function PreguntasFrecuentes() {
       {datos && datos.length > 0 && (
         <div className="preguntas">
           {datos.map((p) => {
-            const pregunta = idioma === 'en' && p.preguntaEn ? p.preguntaEn : p.pregunta;
-            const respuesta = idioma === 'en' && p.respuestaEn ? p.respuestaEn : p.respuesta;
+            const pregunta = t(p.pregunta, p.preguntaEn);
+            const respuesta = t(p.respuesta, p.respuestaEn);
             return (
               <details key={p.id} className="pregunta">
                 <summary>{pregunta}</summary>

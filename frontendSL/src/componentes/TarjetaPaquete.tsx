@@ -64,13 +64,12 @@ export function TarjetaPaquete({
   paquete: Paquete;
   promocion?: PromocionAplicablePaquete;
 }) {
-  const { idioma, t } = usePreferencias();
+  const { t } = usePreferencias();
 
-  const nombre = idioma === 'en' && paquete.nombreEn ? paquete.nombreEn : paquete.nombre;
-  const descripcion = idioma === 'en' && paquete.descripcionEn ? paquete.descripcionEn : paquete.descripcion;
-  const servicioNombre =
-    idioma === 'en' && paquete.servicioNombreEn ? paquete.servicioNombreEn : paquete.servicioNombre;
-  const fichaTecnica = idioma === 'en' && paquete.fichaTecnicaEn ? paquete.fichaTecnicaEn : paquete.fichaTecnica;
+  const nombre = t(paquete.nombre, paquete.nombreEn);
+  const descripcion = paquete.descripcion ? t(paquete.descripcion, paquete.descripcionEn || undefined) : '';
+  const servicioNombre = t(paquete.servicioNombre, paquete.servicioNombreEn);
+  const fichaTecnica = paquete.fichaTecnica ? t(paquete.fichaTecnica, paquete.fichaTecnicaEn || undefined) : '';
   const insigniaComercial = obtenerInsigniaComercial(paquete, t);
 
   const tieneFichaTecnica = Boolean(
@@ -133,11 +132,8 @@ export function TarjetaPaquete({
         {paquete.equipos.length > 0 && (
           <ul className="equipo" aria-label={t('Equipo incluido', 'Included equipment')}>
             {paquete.equipos.map((e) => {
-              const eqNombre = idioma === 'en' && e.equipoNombreEn ? e.equipoNombreEn : e.equipoNombre;
-              const eqSpec =
-                idioma === 'en' && e.especificacionTecnicaEn
-                  ? e.especificacionTecnicaEn
-                  : e.especificacionTecnica;
+              const eqNombre = t(e.equipoNombre, e.equipoNombreEn);
+              const eqSpec = e.especificacionTecnica ? t(e.especificacionTecnica, e.especificacionTecnicaEn || undefined) : '';
               return (
                 <li key={e.equipoId} title={eqSpec ?? undefined}>
                   {e.cantidad} × {eqNombre}
@@ -188,11 +184,8 @@ export function TarjetaPaquete({
                     {paquete.equipos
                       .filter((e) => e.especificacionTecnica || e.especificacionTecnicaEn)
                       .map((e) => {
-                        const eqNom = idioma === 'en' && e.equipoNombreEn ? e.equipoNombreEn : e.equipoNombre;
-                        const eqSp =
-                          idioma === 'en' && e.especificacionTecnicaEn
-                            ? e.especificacionTecnicaEn
-                            : e.especificacionTecnica;
+                        const eqNom = t(e.equipoNombre, e.equipoNombreEn);
+                        const eqSp = e.especificacionTecnica ? t(e.especificacionTecnica, e.especificacionTecnicaEn || undefined) : '';
                         return `${e.cantidad}× ${eqNom} (${eqSp})`;
                       })
                       .join('; ')}

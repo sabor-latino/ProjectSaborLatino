@@ -55,33 +55,27 @@ export function Inicio() {
       ? contenido.datos
       : CONTENIDO_BASE;
 
-  const etiquetaPortada =
-    idioma === 'en' ? c.etiquetaPortadaEn || CONTENIDO_BASE.etiquetaPortadaEn : c.etiquetaPortada || CONTENIDO_BASE.etiquetaPortada;
-  const tituloPortada =
-    idioma === 'en' ? c.tituloPortadaEn || CONTENIDO_BASE.tituloPortadaEn : c.tituloPortada || CONTENIDO_BASE.tituloPortada;
-  const subtituloPortada =
-    idioma === 'en'
-      ? c.subtituloPortadaEn || CONTENIDO_BASE.subtituloPortadaEn
-      : c.subtituloPortada || CONTENIDO_BASE.subtituloPortada;
+  const etiquetaPortada = t(c.etiquetaPortada || CONTENIDO_BASE.etiquetaPortada, c.etiquetaPortadaEn || CONTENIDO_BASE.etiquetaPortadaEn);
+  const tituloPortada = t(c.tituloPortada || CONTENIDO_BASE.tituloPortada, c.tituloPortadaEn || CONTENIDO_BASE.tituloPortadaEn);
+  const subtituloPortada = t(c.subtituloPortada || CONTENIDO_BASE.subtituloPortada, c.subtituloPortadaEn || CONTENIDO_BASE.subtituloPortadaEn);
 
   const pasos = [
     {
-      titulo: idioma === 'en' ? c.paso1TituloEn || CONTENIDO_BASE.paso1TituloEn : c.paso1Titulo || CONTENIDO_BASE.paso1Titulo,
-      texto: idioma === 'en' ? c.paso1TextoEn || CONTENIDO_BASE.paso1TextoEn : c.paso1Texto || CONTENIDO_BASE.paso1Texto,
+      titulo: t(c.paso1Titulo || CONTENIDO_BASE.paso1Titulo, c.paso1TituloEn || CONTENIDO_BASE.paso1TituloEn),
+      texto: t(c.paso1Texto || CONTENIDO_BASE.paso1Texto, c.paso1TextoEn || CONTENIDO_BASE.paso1TextoEn),
     },
     {
-      titulo: idioma === 'en' ? c.paso2TituloEn || CONTENIDO_BASE.paso2TituloEn : c.paso2Titulo || CONTENIDO_BASE.paso2Titulo,
-      texto: idioma === 'en' ? c.paso2TextoEn || CONTENIDO_BASE.paso2TextoEn : c.paso2Texto || CONTENIDO_BASE.paso2Texto,
+      titulo: t(c.paso2Titulo || CONTENIDO_BASE.paso2Titulo, c.paso2TituloEn || CONTENIDO_BASE.paso2TituloEn),
+      texto: t(c.paso2Texto || CONTENIDO_BASE.paso2Texto, c.paso2TextoEn || CONTENIDO_BASE.paso2TextoEn),
     },
     {
-      titulo: idioma === 'en' ? c.paso3TituloEn || CONTENIDO_BASE.paso3TituloEn : c.paso3Titulo || CONTENIDO_BASE.paso3Titulo,
-      texto: idioma === 'en' ? c.paso3TextoEn || CONTENIDO_BASE.paso3TextoEn : c.paso3Texto || CONTENIDO_BASE.paso3Texto,
+      titulo: t(c.paso3Titulo || CONTENIDO_BASE.paso3Titulo, c.paso3TituloEn || CONTENIDO_BASE.paso3TituloEn),
+      texto: t(c.paso3Texto || CONTENIDO_BASE.paso3Texto, c.paso3TextoEn || CONTENIDO_BASE.paso3TextoEn),
     },
   ];
 
-  const ctaTitulo = idioma === 'en' ? c.ctaTituloEn || CONTENIDO_BASE.ctaTituloEn : c.ctaTitulo || CONTENIDO_BASE.ctaTitulo;
-  const ctaSubtitulo =
-    idioma === 'en' ? c.ctaSubtituloEn || CONTENIDO_BASE.ctaSubtituloEn : c.ctaSubtitulo || CONTENIDO_BASE.ctaSubtitulo;
+  const ctaTitulo = t(c.ctaTitulo || CONTENIDO_BASE.ctaTitulo, c.ctaTituloEn || CONTENIDO_BASE.ctaTituloEn);
+  const ctaSubtitulo = t(c.ctaSubtitulo || CONTENIDO_BASE.ctaSubtitulo, c.ctaSubtituloEn || CONTENIDO_BASE.ctaSubtituloEn);
 
   const listaPaquetes = Array.isArray(paquetes.datos) ? paquetes.datos : [];
   const listaServicios = Array.isArray(servicios.datos) ? servicios.datos : [];
@@ -156,12 +150,9 @@ export function Inicio() {
 
           <div className="promociones-grid">
             {listaPromociones.map((promo) => {
-              const nombrePromo = idioma === 'en' && promo.nombreEn ? promo.nombreEn : promo.nombre;
-              const descPromo = idioma === 'en' && promo.descripcionEn ? promo.descripcionEn : promo.descripcion;
-              const etiquetaTemp =
-                idioma === 'en' && promo.etiquetaTemporadaEn
-                  ? promo.etiquetaTemporadaEn
-                  : promo.etiquetaTemporada || t('Temporada especial', 'Special season');
+              const nombrePromo = t(promo.nombre, promo.nombreEn);
+              const descPromo = promo.descripcion ? t(promo.descripcion, promo.descripcionEn || undefined) : '';
+              const etiquetaTemp = promo.etiquetaTemporada ? t(promo.etiquetaTemporada, promo.etiquetaTemporadaEn || undefined) : t('Temporada especial', 'Special season');
               const primerPaquete = promo.paquetes?.[0]?.paqueteId;
               const enlacePromo = primerPaquete
                 ? `/solicitar?paquete=${primerPaquete}&promocion=${promo.id}`
@@ -187,7 +178,7 @@ export function Inicio() {
                   {promo.paquetes && promo.paquetes.length > 0 && (
                     <ul className="promo-card__paquetes" aria-label={t('Paquetes incluidos', 'Included packages')}>
                       {promo.paquetes.map((pk) => {
-                        const pkNombre = idioma === 'en' && pk.paqueteNombreEn ? pk.paqueteNombreEn : pk.paqueteNombre;
+                        const pkNombre = t(pk.paqueteNombre, pk.paqueteNombreEn);
                         return (
                           <li key={pk.paqueteId} className="promo-card__paquete">
                             <span>{pkNombre}</span>
@@ -253,7 +244,7 @@ export function Inicio() {
               aria-label={t('Categorías de servicio', 'Service categories')}
             >
               {listaServicios.map((s) => {
-                const nombreServ = idioma === 'en' && s.nombreEn ? s.nombreEn : s.nombre;
+                const nombreServ = t(s.nombre, s.nombreEn);
                 return (
                   <Link
                     key={s.id}

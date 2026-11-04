@@ -52,7 +52,7 @@ export interface Preferencias {
   alternarIdioma: () => void;
   setEscalaFuente: (escala: EscalaFuente) => void;
   setContraste: (contraste: ModoContraste) => void;
-  t: (esTexto: string, traduccion?: string | TraduccionesInline) => string;
+  t: (esTexto: string, traduccion?: string | null | TraduccionesInline) => string;
   tClave: (clave: string, params?: Record<string, string | number>) => string;
   registrarTraducciones: (idioma: Idioma, traducciones: Record<string, string>) => void;
   textos: DiccionarioEstatico;
@@ -192,27 +192,30 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
 
   // Función t inteligente: 100% retrocompatible con t(es, en) histórico y multilingüe para fr y pt
   const t = useCallback(
-    (esTexto: string, traduccion?: string | TraduccionesInline): string => {
+    (esTexto: string, traduccion?: string | null | TraduccionesInline): string => {
+      if (!esTexto) return '';
       if (idioma === 'es') return esTexto;
 
-      // Caso A: Forma moderna con objeto de idiomas { en: '...', fr: '...', pt: '...' }
+      // 1. Catálogo dinámico inyectado en runtime
+      if (CATALOGOS_DINAMICOS[idioma]?.[esTexto]) {
+        return CATALOGOS_DINAMICOS[idioma][esTexto];
+      }
+
+      // 2. Diccionario estático de primer nivel
+      if (DICCIONARIO[idioma]?.[esTexto]) {
+        return DICCIONARIO[idioma][esTexto];
+      }
+
+      // 3. Caso A: Forma moderna con objeto de idiomas { en: '...', fr: '...', pt: '...' }
       if (typeof traduccion === 'object' && traduccion !== null) {
         return traduccion[idioma] ?? traduccion.en ?? esTexto;
       }
 
-      // Caso B: Forma histórica t(esTexto, enTexto)
-      const enTexto = typeof traduccion === 'string' ? traduccion : esTexto;
+      // 4. Caso B: Forma histórica t(esTexto, enTexto)
+      const enTexto = typeof traduccion === 'string' && traduccion.trim() ? traduccion : esTexto;
       if (idioma === 'en') return enTexto;
 
-      // Idiomas adicionales: francés o portugués
-      if (CATALOGOS_DINAMICOS[idioma][esTexto]) {
-        return CATALOGOS_DINAMICOS[idioma][esTexto];
-      }
-      if (DICCIONARIO[idioma][esTexto]) {
-        return DICCIONARIO[idioma][esTexto];
-      }
-
-      // Fallback a inglés o texto original en español
+      // 5. Fallback a inglés o texto original en español
       return enTexto || esTexto;
     },
     [idioma],

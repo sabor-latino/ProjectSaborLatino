@@ -26,7 +26,7 @@ export function Paquetes() {
     { id: '', nombre: t('Todos', 'All') },
     ...listaServicios.map((s) => ({
       id: String(s.id),
-      nombre: idioma === 'en' && s.nombreEn ? s.nombreEn : s.nombre,
+      nombre: t(s.nombre, s.nombreEn),
     })),
   ];
 
@@ -50,11 +50,8 @@ export function Paquetes() {
       </div>
 
       {promocionesVigentes.map((promo) => {
-        const nombrePromo = idioma === 'en' && promo.nombreEn ? promo.nombreEn : promo.nombre;
-        const etiquetaPromo =
-          idioma === 'en' && promo.etiquetaTemporadaEn
-            ? promo.etiquetaTemporadaEn
-            : promo.etiquetaTemporada || t('Promoción de temporada', 'Seasonal promotion');
+        const nombrePromo = t(promo.nombre, promo.nombreEn);
+        const etiquetaPromo = promo.etiquetaTemporada ? t(promo.etiquetaTemporada, promo.etiquetaTemporadaEn || undefined) : t('Promoción de temporada', 'Seasonal promotion');
         const primerPaquete = promo.paquetes?.[0]?.paqueteId;
         const enlacePromo = primerPaquete
           ? `/solicitar?paquete=${primerPaquete}&promocion=${promo.id}`
