@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 // Errores en JSON estándar (ProblemDetails)
 builder.Services.AddProblemDetails();
@@ -59,6 +60,7 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IConfiguracionService, ConfiguracionService>();
 builder.Services.AddScoped<IContenidoInicioService, ContenidoInicioService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<ITraduccionI18nService, TraduccionI18nService>();
 
 // CORS para el frontend React
 const string PoliticaFrontend = "Frontend";

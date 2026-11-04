@@ -17,10 +17,12 @@ public interface IPaqueteService
 public class PaqueteService : IPaqueteService
 {
     private readonly ApplicationDbContext _db;
+    private readonly ITraduccionI18nService _traduccionService;
 
-    public PaqueteService(ApplicationDbContext db)
+    public PaqueteService(ApplicationDbContext db, ITraduccionI18nService traduccionService)
     {
         _db = db;
+        _traduccionService = traduccionService;
     }
 
     // Consulta base: trae el servicio y el equipo de cada paquete
@@ -55,8 +57,16 @@ public class PaqueteService : IPaqueteService
         var paquete = new Paquete();
         CopiarDatos(dto, paquete);
 
+        // Auto-traducción a inglés si el administrador lo dejó en blanco
+        paquete.NombreEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.NombreEn, dto.Nombre);
+        paquete.DescripcionEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.DescripcionEn, dto.Descripcion);
+        paquete.FichaTecnicaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.FichaTecnicaEn, dto.FichaTecnica);
+
         _db.Paquetes.Add(paquete);
         await _db.SaveChangesAsync();
+
+        // Sincronizar catálogo multilingüe dinámico en i18n (en, fr, pt)
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Nombre, dto.Descripcion, dto.FichaTecnica]);
 
         // Se vuelve a leer para devolverlo con nombres de servicio y equipo
         return (await ObtenerPorIdAsync(paquete.Id, soloActivos: false))!;
@@ -75,7 +85,16 @@ public class PaqueteService : IPaqueteService
         await ValidarAsync(dto);
 
         CopiarDatos(dto, paquete);
+
+        // Auto-traducción a inglés si el administrador lo dejó en blanco
+        paquete.NombreEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.NombreEn, dto.Nombre);
+        paquete.DescripcionEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.DescripcionEn, dto.Descripcion);
+        paquete.FichaTecnicaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.FichaTecnicaEn, dto.FichaTecnica);
+
         await _db.SaveChangesAsync();
+
+        // Sincronizar catálogo multilingüe dinámico en i18n (en, fr, pt)
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Nombre, dto.Descripcion, dto.FichaTecnica]);
 
         return await ObtenerPorIdAsync(id, soloActivos: false);
     }

@@ -23,7 +23,8 @@ public class StartupAndCatalogTests : IClassFixture<BackendTestFactory>
         "20261007043719_UsuariosSistema",
         "20261101190334_EvolucionCatalogoPromocionesInicio",
         "20261101205742_GaleriaTituloEn",
-        "20261102190453_SolicitudWhatsAppManual"
+        "20261102190453_SolicitudWhatsAppManual",
+        "20261104212320_TraduccionesI18nDinamicas"
     ];
 
     private readonly BackendTestFactory _factory;
@@ -76,6 +77,7 @@ public class StartupAndCatalogTests : IClassFixture<BackendTestFactory>
             "EventosHistorialEstados",
             "Configuraciones",
             "Bitacora",
+            "TraduccionesI18n",
             "AspNetUsers",
             "AspNetRoles"
         };

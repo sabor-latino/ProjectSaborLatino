@@ -215,6 +215,7 @@ public class BitacoraInterceptor : SaveChangesInterceptor
 
         return tipo != typeof(Bitacora)
             && tipo != typeof(ApplicationUser)
+            && tipo != typeof(TraduccionI18n)
             && tipo.Namespace?.StartsWith("Microsoft.AspNetCore.Identity") != true;
     }
 

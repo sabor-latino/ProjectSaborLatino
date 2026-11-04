@@ -27,6 +27,7 @@ public static class DbSeeder
         await SembrarCatalogoAsync(db, logger);
         await SembrarPreguntasFrecuentesAsync(db);
         await SembrarPromocionesTemporadaAsync(db);
+        await SembrarTraduccionesI18nAsync(db);
 
         // 0b. Parámetros del sistema (Fase 4)
         await SembrarConfiguracionAsync(db);
@@ -467,6 +468,56 @@ public static class DbSeeder
         }
 
         db.PromocionesTemporada.AddRange(promoFinDeAnio, promoBodas);
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SembrarTraduccionesI18nAsync(ApplicationDbContext db)
+    {
+        if (await db.TraduccionesI18n.AnyAsync())
+        {
+            return;
+        }
+
+        var semillas = new (string Origen, string Idioma, string Traducido)[]
+        {
+            ("DJ Open Format", "en", "Open Format DJ & Party System"),
+            ("DJ Open Format", "fr", "DJ Open Format & Animation"),
+            ("DJ Open Format", "pt", "DJ Open Format & Festa"),
+
+            ("Sonorización para grupos", "en", "Live Band Sound & Production"),
+            ("Sonorización para grupos", "fr", "Sonorisation pour groupes en direct"),
+            ("Sonorización para grupos", "pt", "Sonorização para grupos ao vivo"),
+
+            ("Música bailable en vivo con orquesta completa", "en", "Live Latin Orchestra & Big Band"),
+            ("Música bailable en vivo con orquesta completa", "fr", "Orchestre latino en direct"),
+            ("Música bailable en vivo con orquesta completa", "pt", "Orquestra latina ao vivo"),
+
+            ("Música típica costarricense en marimba", "en", "Traditional Costa Rican Marimba"),
+            ("Música típica costarricense en marimba", "fr", "Marimba traditionnelle costaricienne"),
+            ("Música típica costarricense en marimba", "pt", "Marimba tradicional costarriquenha"),
+
+            ("transporte con cobertura en todo el país (las 7 provincias de Costa Rica)", "en", "nationwide transport covering all 7 provinces of Costa Rica"),
+            ("transporte con cobertura en todo el país (las 7 provincias de Costa Rica)", "fr", "transport dans tout le pays (les 7 provinces du Costa Rica)"),
+            ("transporte con cobertura en todo el país (las 7 provincias de Costa Rica)", "pt", "transporte em todo o país (as 7 províncias da Costa Rica)")
+        };
+
+        foreach (var (origen, idioma, traducido) in semillas)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(origen.Trim());
+            var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+
+            db.TraduccionesI18n.Add(new TraduccionI18n
+            {
+                HashOrigen = hash,
+                TextoOrigen = origen.Trim(),
+                IdiomaDestino = idioma.Trim().ToLowerInvariant(),
+                TextoTraducido = traducido.Trim(),
+                EsAutomatica = false,
+                FechaCreacion = DateTime.UtcNow,
+                FechaActualizacion = DateTime.UtcNow
+            });
+        }
+
         await db.SaveChangesAsync();
     }
 }

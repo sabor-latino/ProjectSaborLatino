@@ -17,10 +17,12 @@ public interface IPreguntaFrecuenteService
 public class PreguntaFrecuenteService : IPreguntaFrecuenteService
 {
     private readonly ApplicationDbContext _db;
+    private readonly ITraduccionI18nService _traduccionService;
 
-    public PreguntaFrecuenteService(ApplicationDbContext db)
+    public PreguntaFrecuenteService(ApplicationDbContext db, ITraduccionI18nService traduccionService)
     {
         _db = db;
+        _traduccionService = traduccionService;
     }
 
     public async Task<List<PreguntaFrecuenteDto>> ObtenerTodosAsync(bool soloActivos)
@@ -46,8 +48,15 @@ public class PreguntaFrecuenteService : IPreguntaFrecuenteService
         var entidad = new PreguntaFrecuente();
         CopiarDatos(dto, entidad);
 
+        // Auto-traducción dinámica inteligente a inglés si no se proporcionó
+        entidad.PreguntaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.PreguntaEn, dto.Pregunta);
+        entidad.RespuestaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.RespuestaEn, dto.Respuesta);
+
         _db.PreguntasFrecuentes.Add(entidad);
         await _db.SaveChangesAsync();
+
+        // Sincronizar catálogo multilingüe dinámico (en, fr, pt)
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Pregunta, dto.Respuesta]);
 
         return ADto(entidad);
     }
@@ -61,7 +70,15 @@ public class PreguntaFrecuenteService : IPreguntaFrecuenteService
         }
 
         CopiarDatos(dto, entidad);
+
+        // Auto-traducción dinámica inteligente a inglés si no se proporcionó
+        entidad.PreguntaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.PreguntaEn, dto.Pregunta);
+        entidad.RespuestaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.RespuestaEn, dto.Respuesta);
+
         await _db.SaveChangesAsync();
+
+        // Sincronizar catálogo multilingüe dinámico (en, fr, pt)
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Pregunta, dto.Respuesta]);
 
         return ADto(entidad);
     }

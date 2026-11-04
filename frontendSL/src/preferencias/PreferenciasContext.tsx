@@ -190,6 +190,33 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
     setVersionDinamica((v) => v + 1);
   }, []);
 
+  useEffect(() => {
+    let montado = true;
+    const urlApi = import.meta.env.VITE_API_URL ?? 'http://localhost:5238';
+    fetch(`${urlApi}/api/i18n/catalogo`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((catalogo: Record<string, Record<string, string>> | null) => {
+        if (!montado || !catalogo) return;
+        let huboCambios = false;
+        (['en', 'fr', 'pt'] as Idioma[]).forEach((lang) => {
+          if (catalogo[lang] && typeof catalogo[lang] === 'object') {
+            Object.assign(CATALOGOS_DINAMICOS[lang], catalogo[lang]);
+            huboCambios = true;
+          }
+        });
+        if (huboCambios && montado) {
+          setVersionDinamica((v) => v + 1);
+        }
+      })
+      .catch(() => {
+        // Fallback silencioso: no interrumpe la UI si la API está fuera de línea
+      });
+
+    return () => {
+      montado = false;
+    };
+  }, []);
+
   // Función t inteligente: 100% retrocompatible con t(es, en) histórico y multilingüe para fr y pt
   const t = useCallback(
     (esTexto: string, traduccion?: string | null | TraduccionesInline): string => {

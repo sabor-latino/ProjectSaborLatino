@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectSaborLatino.Data;
 using ProjectSaborLatino.DTOs.Catalogo;
 using ProjectSaborLatino.Models;
@@ -17,10 +17,12 @@ public interface IImagenGaleriaService
 public class ImagenGaleriaService : IImagenGaleriaService
 {
     private readonly ApplicationDbContext _db;
+    private readonly ITraduccionI18nService _traduccionService;
 
-    public ImagenGaleriaService(ApplicationDbContext db)
+    public ImagenGaleriaService(ApplicationDbContext db, ITraduccionI18nService traduccionService)
     {
         _db = db;
+        _traduccionService = traduccionService;
     }
 
     public async Task<List<ImagenGaleriaDto>> ObtenerTodosAsync(bool soloActivos)
@@ -46,8 +48,14 @@ public class ImagenGaleriaService : IImagenGaleriaService
         var entidad = new ImagenGaleria();
         CopiarDatos(dto, entidad);
 
+        // Auto-traducción de título a inglés si no se suministró
+        entidad.TituloEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.TituloEn, dto.Titulo);
+
         _db.ImagenesGaleria.Add(entidad);
         await _db.SaveChangesAsync();
+
+        // Sincronizar en el catálogo dinámico i18n
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Titulo]);
 
         return ADto(entidad);
     }
@@ -61,7 +69,14 @@ public class ImagenGaleriaService : IImagenGaleriaService
         }
 
         CopiarDatos(dto, entidad);
+
+        // Auto-traducción de título a inglés si no se suministró
+        entidad.TituloEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.TituloEn, dto.Titulo);
+
         await _db.SaveChangesAsync();
+
+        // Sincronizar en el catálogo dinámico i18n
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Titulo]);
 
         return ADto(entidad);
     }

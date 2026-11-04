@@ -41,6 +41,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
     public DbSet<Bitacora> Bitacora => Set<Bitacora>();
 
+    // =============== Internacionalización Dinámica (Fase 25) ===============
+    public DbSet<TraduccionI18n> TraduccionesI18n => Set<TraduccionI18n>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // Identity necesita configurar sus propias tablas primero

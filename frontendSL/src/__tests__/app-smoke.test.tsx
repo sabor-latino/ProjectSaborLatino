@@ -8,7 +8,7 @@ import { TarjetaPaquete, obtenerInsigniaComercial } from '../componentes/Tarjeta
 import { Catalogo } from '../paginas/panel/Catalogo';
 import { InicioAdmin } from '../paginas/panel/InicioAdmin';
 import { PromocionesAdmin } from '../paginas/panel/PromocionesAdmin';
-import { PreferenciasProvider } from '../preferencias/PreferenciasContext';
+import { PreferenciasProvider, usePreferencias } from '../preferencias/PreferenciasContext';
 
 const PAQUETE_TECNICO: Paquete = {
   id: 10,
@@ -112,6 +112,17 @@ describe('Sabor Latino — Accesibilidad WCAG AAA, Idioma ES/EN, Paquetes Técni
               ],
             },
           ]),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+
+      if (url.includes('/api/i18n/catalogo')) {
+        return new Response(
+          JSON.stringify({
+            en: { 'Nuevo Paquete Dinámico': 'New Dynamic Package' },
+            fr: { 'Nuevo Paquete Dinámico': 'Nouveau forfait dynamique' },
+            pt: { 'Nuevo Paquete Dinámico': 'Novo pacote dinâmico' },
+          }),
           { status: 200, headers: { 'Content-Type': 'application/json' } },
         );
       }
@@ -351,5 +362,36 @@ describe('Sabor Latino — Accesibilidad WCAG AAA, Idioma ES/EN, Paquetes Técni
     expect(triggerContraste).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(triggerContraste);
     expect(triggerContraste).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('resuelve traducciones dinámicas inyectadas desde el backend al cambiar de idioma', async () => {
+    function ComponentePruebaDinamica() {
+      const { t, setIdioma } = usePreferencias();
+      return (
+        <div>
+          <span data-testid="texto-traducido">{t('Nuevo Paquete Dinámico')}</span>
+          <button type="button" onClick={() => setIdioma('fr')}>
+            Cambiar FR
+          </button>
+          <button type="button" onClick={() => setIdioma('pt')}>
+            Cambiar PT
+          </button>
+        </div>
+      );
+    }
+
+    render(
+      <PreferenciasProvider>
+        <ComponentePruebaDinamica />
+      </PreferenciasProvider>,
+    );
+
+    expect(screen.getByTestId('texto-traducido')).toHaveTextContent('Nuevo Paquete Dinámico');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar FR' }));
+    expect(await screen.findByText('Nouveau forfait dynamique')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar PT' }));
+    expect(await screen.findByText('Novo pacote dinâmico')).toBeInTheDocument();
   });
 });

@@ -17,10 +17,12 @@ public interface IPromocionTemporadaService
 public class PromocionTemporadaService : IPromocionTemporadaService
 {
     private readonly ApplicationDbContext _db;
+    private readonly ITraduccionI18nService _traduccionService;
 
-    public PromocionTemporadaService(ApplicationDbContext db)
+    public PromocionTemporadaService(ApplicationDbContext db, ITraduccionI18nService traduccionService)
     {
         _db = db;
+        _traduccionService = traduccionService;
     }
 
     private IQueryable<PromocionTemporada> ConDetalle() => _db.PromocionesTemporada
@@ -57,8 +59,16 @@ public class PromocionTemporadaService : IPromocionTemporadaService
         var promocion = new PromocionTemporada();
         CopiarDatos(dto, promocion);
 
+        // Auto-traducción a inglés si no se proporcionó
+        promocion.NombreEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.NombreEn, dto.Nombre);
+        promocion.DescripcionEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.DescripcionEn, dto.Descripcion);
+        promocion.EtiquetaTemporadaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.EtiquetaTemporadaEn, dto.EtiquetaTemporada);
+
         _db.PromocionesTemporada.Add(promocion);
         await _db.SaveChangesAsync();
+
+        // Sincronizar catálogo multilingüe en i18n
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Nombre, dto.Descripcion, dto.EtiquetaTemporada]);
 
         return (await ObtenerPorIdAsync(promocion.Id, soloActivasYVigentes: false))!;
     }
@@ -76,7 +86,16 @@ public class PromocionTemporadaService : IPromocionTemporadaService
         await ValidarAsync(dto, exigirPaquetesActivos: dto.Activo);
 
         CopiarDatos(dto, promocion);
+
+        // Auto-traducción a inglés si no se proporcionó
+        promocion.NombreEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.NombreEn, dto.Nombre);
+        promocion.DescripcionEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.DescripcionEn, dto.Descripcion);
+        promocion.EtiquetaTemporadaEn = await _traduccionService.TraducirAInglesSiVacioAsync(dto.EtiquetaTemporadaEn, dto.EtiquetaTemporada);
+
         await _db.SaveChangesAsync();
+
+        // Sincronizar catálogo multilingüe en i18n
+        await _traduccionService.SincronizarTraduccionesAsync([dto.Nombre, dto.Descripcion, dto.EtiquetaTemporada]);
 
         return await ObtenerPorIdAsync(id, soloActivasYVigentes: false);
     }
@@ -118,33 +137,33 @@ public class PromocionTemporadaService : IPromocionTemporadaService
                 .CountAsync(p => paqueteIds.Contains(p.Id) && (!exigirPaquetesActivos || (p.Activo && p.Servicio!.Activo)));
             if (existentes != paqueteIds.Count)
             {
-                throw new DatosInvalidosException("Uno o más paquetes indicados no existen o están inactivos.");
+                throw new DatosInvalidosException("Uno o más paquetes seleccionados para la promoción no existen o están inactivos.");
             }
         }
     }
 
     private static void CopiarDatos(PromocionTemporadaGuardarDto dto, PromocionTemporada promocion)
     {
-        promocion.Nombre = dto.Nombre.Trim();
-        promocion.NombreEn = string.IsNullOrWhiteSpace(dto.NombreEn) ? null : dto.NombreEn.Trim();
-        promocion.Descripcion = string.IsNullOrWhiteSpace(dto.Descripcion) ? null : dto.Descripcion.Trim();
-        promocion.DescripcionEn = string.IsNullOrWhiteSpace(dto.DescripcionEn) ? null : dto.DescripcionEn.Trim();
-        promocion.EtiquetaTemporada = string.IsNullOrWhiteSpace(dto.EtiquetaTemporada) ? null : dto.EtiquetaTemporada.Trim();
-        promocion.EtiquetaTemporadaEn = string.IsNullOrWhiteSpace(dto.EtiquetaTemporadaEn) ? null : dto.EtiquetaTemporadaEn.Trim();
+        promocion.Nombre = dto.Nombre;
+        promocion.NombreEn = dto.NombreEn;
+        promocion.Descripcion = dto.Descripcion;
+        promocion.DescripcionEn = dto.DescripcionEn;
+        promocion.EtiquetaTemporada = dto.EtiquetaTemporada;
+        promocion.EtiquetaTemporadaEn = dto.EtiquetaTemporadaEn;
         promocion.PorcentajeDescuento = dto.PorcentajeDescuento;
-        promocion.CodigoPromocional = string.IsNullOrWhiteSpace(dto.CodigoPromocional) ? null : dto.CodigoPromocional.Trim();
+        promocion.CodigoPromocional = string.IsNullOrWhiteSpace(dto.CodigoPromocional) ? null : dto.CodigoPromocional.Trim().ToUpperInvariant();
         promocion.FechaInicio = dto.FechaInicio;
         promocion.FechaFin = dto.FechaFin;
-        promocion.ImagenUrl = string.IsNullOrWhiteSpace(dto.ImagenUrl) ? null : dto.ImagenUrl.Trim();
+        promocion.ImagenUrl = dto.ImagenUrl;
         promocion.DestacadaEnInicio = dto.DestacadaEnInicio;
         promocion.Activo = dto.Activo;
 
-        var idsDeseados = (dto.PaqueteIds ?? []).Distinct().ToList();
-        promocion.Paquetes.RemoveAll(pp => !idsDeseados.Contains(pp.PaqueteId));
+        var paqueteIds = (dto.PaqueteIds ?? []).Distinct().ToList();
+        promocion.Paquetes.RemoveAll(p => !paqueteIds.Contains(p.PaqueteId));
 
-        foreach (var paqueteId in idsDeseados)
+        foreach (var paqueteId in paqueteIds)
         {
-            if (!promocion.Paquetes.Any(pp => pp.PaqueteId == paqueteId))
+            if (!promocion.Paquetes.Any(p => p.PaqueteId == paqueteId))
             {
                 promocion.Paquetes.Add(new PromocionTemporadaPaquete { PaqueteId = paqueteId });
             }
