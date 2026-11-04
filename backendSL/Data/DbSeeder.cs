@@ -339,6 +339,14 @@ public static class DbSeeder
 
     private static async Task SembrarPreguntasFrecuentesAsync(ApplicationDbContext db)
     {
+        var faqTransporte = await db.PreguntasFrecuentes.FirstOrDefaultAsync(p => p.Orden == 3);
+        if (faqTransporte != null && faqTransporte.Respuesta.Contains("Gran Área Metropolitana"))
+        {
+            faqTransporte.Respuesta = "Sí. Todos nuestros paquetes incluyen transporte con cobertura en todo el país (las 7 provincias de Costa Rica), montaje, desmontaje y operación técnica durante el evento. La logística se coordina formalmente según la ubicación exacta de su actividad.";
+            faqTransporte.RespuestaEn = "Yes. All our packages include nationwide transport covering all 7 provinces of Costa Rica, setup, teardown, and live technical operation during your event. Logistics are formally coordinated based on your exact venue location.";
+            await db.SaveChangesAsync();
+        }
+
         if (await db.PreguntasFrecuentes.AnyAsync())
         {
             return;
@@ -368,8 +376,8 @@ public static class DbSeeder
                 Orden = 3,
                 Pregunta = "¿Los paquetes incluyen transporte, montaje y operador de audio?",
                 PreguntaEn = "Do packages include transportation, setup, and an audio engineer?",
-                Respuesta = "Sí. Todos nuestros paquetes incluyen el montaje, desmontaje y operación técnica durante el evento. El costo base cubre el Gran Área Metropolitana (GAM); para eventos fuera del GAM se calcula el rubro logístico en la cotización formal.",
-                RespuestaEn = "Yes. Every package includes setup, teardown, and live technical operation during your event. Base pricing covers the Greater Metropolitan Area (GAM); for venues outside the GAM, travel logistics are itemized in your formal quote.",
+                Respuesta = "Sí. Todos nuestros paquetes incluyen transporte con cobertura en todo el país (las 7 provincias de Costa Rica), montaje, desmontaje y operación técnica durante el evento. La logística se coordina formalmente según la ubicación exacta de su actividad.",
+                RespuestaEn = "Yes. All our packages include nationwide transport covering all 7 provinces of Costa Rica, setup, teardown, and live technical operation during your event. Logistics are formally coordinated based on your exact venue location.",
                 Activo = true
             },
             new PreguntaFrecuente

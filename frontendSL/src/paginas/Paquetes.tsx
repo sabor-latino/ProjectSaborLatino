@@ -43,8 +43,8 @@ export function Paquetes() {
         </h1>
         <p className="intro">
           {t(
-            'Cada paquete incluye transporte dentro del Gran Área Metropolitana, montaje profesional, prueba acústica e ingeniería de sonido en vivo. Solicite su cotización formal según la fecha, el lugar y la duración de su evento.',
-            'Every package includes transport within the Greater Metropolitan Area, professional setup, soundcheck, and live audio engineering. Request a formal quote tailored to your event date, venue, and duration.',
+            'Cada paquete incluye transporte en todo el país, montaje profesional, prueba acústica e ingeniería de sonido en vivo. Solicite su cotización formal según la fecha, el lugar y la duración de su evento.',
+            'Every package includes nationwide transport across Costa Rica, professional setup, soundcheck, and live audio engineering. Request a formal quote tailored to your event date, venue, and duration.',
           )}
         </p>
       </div>
