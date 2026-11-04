@@ -272,7 +272,12 @@ function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTe
   const [monto, setMonto] = useState('');
   const [descuento, setDescuento] = useState('');
   const [detalle, setDetalle] = useState('');
-  const [vigente, setVigente] = useState('');
+  const [vigente, setVigente] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 15);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  });
   const f = fidelidad.datos;
 
   const tienePromo = Boolean(f?.promocionTemporadaNombre && (f.porcentajePromocionTemporada ?? 0) > 0);

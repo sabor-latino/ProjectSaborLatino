@@ -47,6 +47,7 @@ export function Eventos() {
         {datos?.map((ev) => {
           const siguiente = siguienteEstadoEvento(ev.estado);
           const activo = ev.estado !== 'Cancelado' && ev.estado !== 'Finalizado';
+          const esExterior = /jard[ií]n|aire libre|playa|exterior|intemperie|finca|quinta|piscina/i.test(`${ev.lugar} ${ev.notas ?? ''}`);
           return (
             <article key={ev.id} className="tarjeta-panel">
               <button
@@ -63,7 +64,14 @@ export function Eventos() {
                     {ev.nombreContacto} · {formatoFechaHora(ev.fechaInicio)} · {ev.lugar}
                   </span>
                 </span>
-                <Insignia estado={ev.estado} />
+                <span style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {esExterior && (
+                    <span className="insignia insignia--alerta" title="Evento en exterior: requiere toldo impermeable obligatorio">
+                      ⛺ Exterior / Requiere Toldo
+                    </span>
+                  )}
+                  <Insignia estado={ev.estado} />
+                </span>
               </button>
 
               {abierto === ev.id && (

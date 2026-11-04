@@ -4,8 +4,26 @@ import { formatoFechaHora } from '../../utilidades/formato';
 
 // Detalle de un evento: fechas, equipo, personal e historial de estados
 export function FichaEvento({ evento, conHistorial = true }: { evento: Evento; conHistorial?: boolean }) {
+  const esExterior = /jard[ií]n|aire libre|playa|exterior|intemperie|finca|quinta|piscina/i.test(`${evento.lugar} ${evento.notas ?? ''}`);
+
   return (
     <div className="ficha-evento">
+      {esExterior && (
+        <aside
+          className="alerta-clima"
+          style={{
+            backgroundColor: '#fffbeb',
+            color: '#92400e',
+            border: '1px solid #fde68a',
+            padding: '0.75rem 1rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+          }}
+        >
+          <strong>⚠️ Requisito de Intemperie (Legal.RequisitoToldo):</strong> Para eventos al aire libre o jardín, se requiere tarima techada e impermeable para salvaguardar los equipos electrónicos de sonido e iluminación.
+        </aside>
+      )}
       <dl className="ficha">
         <dt>Cliente</dt>
         <dd>{evento.nombreContacto}</dd>

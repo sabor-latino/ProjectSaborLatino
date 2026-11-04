@@ -480,6 +480,17 @@ function FormularioSolicitud({ perfil, actor, enfocar, intentoInicial, alEnviar 
           </p>
         </div>
       </div>
+      {/jard[ií]n|aire libre|playa|exterior|intemperie|finca|quinta|piscina/i.test(`${datos.lugar}`) && (
+        <Mensaje tipo="info">
+          <p>
+            <strong>{t('⛺ Requisito obligatorio para exteriores:', '⛺ Mandatory requirement for outdoors:')}</strong>{' '}
+            {t(
+              'Para eventos al aire libre o jardín, se requiere de forma obligatoria tarima techada e impermeable para salvaguardar los equipos electrónicos de sonido e iluminación.',
+              'For outdoor or garden events, a covered and waterproof stage is strictly required to safeguard electronic sound and lighting equipment.'
+            )}
+          </p>
+        </Mensaje>
+      )}
       </fieldset>
 
       <fieldset className="grupo-campos">

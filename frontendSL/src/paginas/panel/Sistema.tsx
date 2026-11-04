@@ -10,6 +10,10 @@ import { formatoFechaHora } from '../../utilidades/formato';
 const NOMBRES_CLAVE: Record<string, string> = {
   'Fidelidad.EventosMinimos': 'Eventos para ser cliente frecuente',
   'Fidelidad.PorcentajeDescuento': 'Descuento del cliente frecuente (%)',
+  'Finanzas.AnticipoPorcentaje': 'Porcentaje de anticipo obligatorio (%)',
+  'Finanzas.VigenciaDiasEstandar': 'Vigencia estándar de cotización (días)',
+  'Legal.PoliticaCancelacion': 'Política de cancelación y reembolso',
+  'Legal.RequisitoToldo': 'Requisito de toldo y tarima techada para exteriores',
 };
 
 // Solo Superadministrador: reglas del negocio
@@ -54,7 +58,27 @@ function ValorConfiguracion({ config, alGuardar }: { config: DatosConfiguracion;
     >
       <div className="campo">
         <label htmlFor={id}>{NOMBRES_CLAVE[config.clave] ?? config.clave}</label>
-        <input id={id} name={config.clave} required maxLength={500} autoComplete="off" value={valor} onChange={(e) => setValor(e.target.value)} />
+        {config.clave.startsWith('Legal.') || valor.length > 80 ? (
+          <textarea
+            id={id}
+            name={config.clave}
+            required
+            maxLength={1000}
+            rows={4}
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+          />
+        ) : (
+          <input
+            id={id}
+            name={config.clave}
+            required
+            maxLength={500}
+            autoComplete="off"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+          />
+        )}
         {config.descripcion && <p className="campo__ayuda">{config.descripcion}</p>}
       </div>
     </FormularioAccion>
