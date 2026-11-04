@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProjectSaborLatino.DTOs.Sistema;
 using ProjectSaborLatino.Models;
@@ -6,10 +6,10 @@ using ProjectSaborLatino.Services;
 
 namespace ProjectSaborLatino.Controllers;
 
-// Parámetros del sistema (solo Superadministrador)
+// Parámetros del sistema (Administrador y Superadministrador)
 [ApiController]
 [Route("api/configuracion")]
-[Authorize(Roles = Roles.Superadministrador)]
+[Authorize(Roles = $"{Roles.Administrador},{Roles.Superadministrador}")]
 public class ConfiguracionController : ControllerBase
 {
     private readonly IConfiguracionService _service;

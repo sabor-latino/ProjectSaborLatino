@@ -1,0 +1,18 @@
+---
+description: Regla marcial sumamente prioritaria de auxilio técnico a Codex y protocolo de emergencia ante agotamiento de tokens
+alwaysApply: true
+---
+
+# Regla Prioritaria: Auxilio Técnico y Relevo de Emergencia a Codex
+
+## 1. Auxilio Técnico a Codex (Humildad Técnica)
+- Si la IA actual no sabe cómo realizar una tarea, se topa con un error persistente, duda sobre la arquitectura o encuentra un bloqueo complejo, **no debe improvisar, adivinar ni dar vueltas en falso**.
+- Debe solicitar proactivamente la ayuda de Codex.
+- Documentar el problema de forma concisa y estructurada en `tasks/RELEVO_IA.md` y `tasks/plan.md`, detallando el objetivo, el error exacto observado y las hipótesis a evaluar por Codex.
+
+## 2. Relevo Crítico ante Agotamiento de Tokens (SOS a Codex)
+- Cuando la ventana de contexto o la cuota de tokens esté en un nivel elevado o exista riesgo inminente de corte abrupto:
+  1. Detener de inmediato la creación de nuevos archivos o modificaciones parciales.
+  2. Ejecutar y verificar que los archivos tocados compilen y no dejen sintaxis rota.
+  3. Actualizar `donde lo dejamos.md`, `tasks/RELEVO_IA.md` y `tasks/plan.md` con el estado exacto, tareas completadas `[x]` y el siguiente paso `[ ]`.
+  4. Emitir un llamado de auxilio formal y transferir el relevo a Codex para garantizar la continuidad inmediata sin pérdida de trabajo.

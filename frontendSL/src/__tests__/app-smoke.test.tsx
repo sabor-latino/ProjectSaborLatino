@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
 import type { Paquete } from '../api/tipos';
 import { AuthProvider } from '../auth/AuthContext';
-import { TarjetaPaquete } from '../componentes/TarjetaPaquete';
+import { TarjetaPaquete, obtenerInsigniaComercial } from '../componentes/TarjetaPaquete';
 import { Catalogo } from '../paginas/panel/Catalogo';
 import { InicioAdmin } from '../paginas/panel/InicioAdmin';
 import { PromocionesAdmin } from '../paginas/panel/PromocionesAdmin';
@@ -242,9 +242,16 @@ describe('Sabor Latino — Accesibilidad WCAG AAA, Idioma ES/EN, Paquetes Técni
 
     expect(screen.getByText(/Temporada de Fin de Año · -20%/i)).toBeInTheDocument();
     expect(screen.getByText(/Especificaciones técnicas y montaje/i)).toBeInTheDocument();
-    expect(screen.getByText(/4 000 W RMS con subwoofers de 18"/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/4 000 W RMS con subwoofers de 18"/i)[0]).toBeInTheDocument();
     expect(screen.getByText(/Hasta 200 invitados/i)).toBeInTheDocument();
     expect(screen.getByText(/2 circuitos independientes de 120 V \/ 20 A/i)).toBeInTheDocument();
+    expect(screen.getByText(/⭐ Más cotizado/i)).toBeInTheDocument();
+    expect(screen.getByText(/4 horas de música incluidas · Hora adicional disponible/i)).toBeInTheDocument();
+
+    const mockT = (es: string) => es;
+    expect(obtenerInsigniaComercial({ ...PAQUETE_TECNICO, servicioNombre: 'Sonorización', nombre: 'Sonorización para grupos o DJs' }, mockT)).toBe('⚡ Alta fidelidad');
+    expect(obtenerInsigniaComercial({ ...PAQUETE_TECNICO, servicioNombre: 'Música en vivo', nombre: 'Marimba Orquesta Son del Gallo' }, mockT)).toBe('💍 Recomendado para bodas');
+    expect(obtenerInsigniaComercial({ ...PAQUETE_TECNICO, servicioNombre: 'Karaoke', nombre: 'DJ Open Format' }, mockT)).toBe('⭐ Más cotizado');
   });
 
   it('renderiza las 3 secciones administrativas: InicioAdmin, PromocionesAdmin y Catalogo (Paquetes)', async () => {

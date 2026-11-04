@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -179,9 +179,13 @@ public class StartupAndCatalogTests : IClassFixture<BackendTestFactory>
         Assert.Equal(24, paquetes.Sum(p => p.Equipos.Count));
 
         var configuraciones = await db.Configuraciones.AsNoTracking().OrderBy(c => c.Clave).ToListAsync();
-        Assert.Equal(2, configuraciones.Count);
+        Assert.Equal(6, configuraciones.Count);
         Assert.Contains(configuraciones, c => c.Clave == "Fidelidad.EventosMinimos" && c.Valor == "3");
         Assert.Contains(configuraciones, c => c.Clave == "Fidelidad.PorcentajeDescuento" && c.Valor == "10");
+        Assert.Contains(configuraciones, c => c.Clave == "Finanzas.AnticipoPorcentaje" && c.Valor == "50");
+        Assert.Contains(configuraciones, c => c.Clave == "Finanzas.VigenciaDiasEstandar" && c.Valor == "15");
+        Assert.Contains(configuraciones, c => c.Clave == "Legal.PoliticaCancelacion" && c.Valor.Contains("Cancelaciones"));
+        Assert.Contains(configuraciones, c => c.Clave == "Legal.RequisitoToldo" && c.Valor.Contains("tarima techada"));
 
         var roles = await roleManager.Roles.Select(r => r.Name!).ToListAsync();
         Assert.Equal(Roles.Todos.Length, roles.Count);

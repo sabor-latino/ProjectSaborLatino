@@ -1,0 +1,84 @@
+[
+  {
+    "ref": "5428206e2008e2c02cd000deb4f3910bf361d860",
+    "migration_tree": "1220609516b085176fb7da1aaa1ba7ad1aa7ee1b",
+    "files": 17,
+    "migrations": 8,
+    "expected": "3cc2085bc01e225b3f8659d58c4482c34657aa1848626e1f46cdbd58ba37fe8a",
+    "variants": [
+      {
+        "ordering": "posix",
+        "separator": "NUL",
+        "hash": "d64812a4b49799b866809a69e2ddb4a292d33c29d057cc7626682d88fb5a0f4d",
+        "matches_expected": false
+      },
+      {
+        "ordering": "posix",
+        "separator": "literal_backslash_zero",
+        "hash": "d32466f46a5d1b644f1cc1d56ee370de683b950c0965da04c52148d1df7604f0",
+        "matches_expected": false
+      },
+      {
+        "ordering": "windows",
+        "separator": "NUL",
+        "hash": "3cc2085bc01e225b3f8659d58c4482c34657aa1848626e1f46cdbd58ba37fe8a",
+        "matches_expected": true
+      },
+      {
+        "ordering": "windows",
+        "separator": "literal_backslash_zero",
+        "hash": "52405ee9a93784acbeb74d6728fd9df2d2dc859bde66e0f8ff7b2989be4b819b",
+        "matches_expected": false
+      }
+    ],
+    "first_windows": [
+      "backendSL/Migrations/20260926160341_InitialCreate.cs",
+      "backendSL/Migrations/20260926160341_InitialCreate.Designer.cs"
+    ],
+    "first_posix": [
+      "backendSL/Migrations/20260926160341_InitialCreate.Designer.cs",
+      "backendSL/Migrations/20260926160341_InitialCreate.cs"
+    ]
+  },
+  {
+    "ref": "14a50422725a9254db0f89bf27fa8e902e07b547",
+    "migration_tree": "f384c66ecef67e5981a445b4ac4ac6386b82d8a5",
+    "files": 19,
+    "migrations": 9,
+    "expected": "3cc2085bc01e225b3f8659d58c4482c34657aa1848626e1f46cdbd58ba37fe8a",
+    "variants": [
+      {
+        "ordering": "posix",
+        "separator": "NUL",
+        "hash": "0b4da99686e70763b46f7daf9cccd8c1c5bc04c22011427c511f5b32532329f8",
+        "matches_expected": false
+      },
+      {
+        "ordering": "posix",
+        "separator": "literal_backslash_zero",
+        "hash": "7370aeca1605770c0d9f32183c8fa08b0f3192ce4c6a7f4e74f3be449a1df721",
+        "matches_expected": false
+      },
+      {
+        "ordering": "windows",
+        "separator": "NUL",
+        "hash": "fc911788222d894d4317e65e20ae8f5a0d4539968672ad813873f8f492132312",
+        "matches_expected": false
+      },
+      {
+        "ordering": "windows",
+        "separator": "literal_backslash_zero",
+        "hash": "fe77bf782b7b681f0f50e2ddafa3672c48389e777a7cab57ea879ddf3dfb7016",
+        "matches_expected": false
+      }
+    ],
+    "first_windows": [
+      "backendSL/Migrations/20260926160341_InitialCreate.cs",
+      "backendSL/Migrations/20260926160341_InitialCreate.Designer.cs"
+    ],
+    "first_posix": [
+      "backendSL/Migrations/20260926160341_InitialCreate.Designer.cs",
+      "backendSL/Migrations/20260926160341_InitialCreate.cs"
+    ]
+  }
+]

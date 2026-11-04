@@ -24,3 +24,15 @@ No se publicaron estos cambios de función en producción, no commits/push/merge
 - [ ] Comparativa internet y capturas antes/después.
 - [ ] QA integral, hooks y revisión independiente sobre fuente final.
 - [ ] Relevo actualizado con resultados reales y límites.
+
+## Reparación Azure — completada
+- [x] Verificar historia SQL y destino Azure explícito.
+- [x] Aplicar únicamente delta8→9 con rollback ante error; verificar columnas/índice e integridad del registro existente.
+- [x] Retirar todas las reglas de firewall temporales.
+- [x] Corregir huella portable y actualizar baseline solo tras verificación SQL.
+- [x] Añadir12regresiones y ejecutarlas en Windows/Linux;81backend/24frontend/builds/hooks/CI verdes.
+- [x] Publicar API compatible y verificar binario y smoke.
+- [x] PR20 fusionado con autorización expresa; main62e0d6a.
+- [x] Corregir subject OIDC con IDs inmutables manteniendo permisos acotados.
+- [x] Despliegue automático41648425222 intento2 success y QA posterior con capturas.
+- [x] Relevo y reporte final guardados con límites: sin mensajes reales, ni solicitudes válidas creadas durante QA; avisos moderados devtooling separados.

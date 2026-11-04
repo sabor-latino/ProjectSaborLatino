@@ -1,7 +1,27 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  IDIOMAS_DISPONIBLES,
+  type DiccionarioEstatico,
+  type Idioma,
+  type IdiomaConfig,
+  type TraduccionesInline,
+} from '../i18n/tipos';
+import { diccionarioEs } from '../i18n/locales/es';
+import { diccionarioEn } from '../i18n/locales/en';
+import { diccionarioFr } from '../i18n/locales/fr';
+import { diccionarioPt } from '../i18n/locales/pt';
 
-export type Idioma = 'es' | 'en';
+export type { Idioma, IdiomaConfig };
+export { IDIOMAS_DISPONIBLES };
 export type EscalaFuente = 'normal' | 'grande' | 'extra';
 export type ModoContraste = 'estandar' | 'alto-claro' | 'alto-oscuro';
 
@@ -9,42 +29,20 @@ const CLAVE_IDIOMA = 'sabor_idioma';
 const CLAVE_FUENTE = 'sabor_fuente';
 const CLAVE_CONTRASTE = 'sabor_contraste';
 
-export const DICCIONARIO = {
-  es: {
-    saltarContenido: 'Saltar al contenido principal',
-    inicio: 'Inicio',
-    paquetes: 'Paquetes',
-    galeria: 'Galería',
-    preguntas: 'Preguntas',
-    panel: 'Panel',
-    iniciarSesion: 'Iniciar sesión',
-    salir: 'Salir',
-    solicitarCotizacion: 'Solicitar cotización',
-    explorar: 'Explorar',
-    suCuenta: 'Su cuenta',
-    miCuenta: 'Mi cuenta',
-    crearCuenta: 'Crear cuenta',
-    preguntasFrecuentes: 'Preguntas frecuentes',
-    esloganPie: 'Karaoke, música en vivo, animación y sonido profesional para sus celebraciones en Costa Rica.',
-  },
-  en: {
-    saltarContenido: 'Skip to main content',
-    inicio: 'Home',
-    paquetes: 'Packages',
-    galeria: 'Gallery',
-    preguntas: 'FAQ',
-    panel: 'Dashboard',
-    iniciarSesion: 'Sign in',
-    salir: 'Sign out',
-    solicitarCotizacion: 'Request a quote',
-    explorar: 'Explore',
-    suCuenta: 'Your account',
-    miCuenta: 'My account',
-    crearCuenta: 'Create account',
-    preguntasFrecuentes: 'Frequently asked questions',
-    esloganPie: 'Karaoke, live music, hosting, and professional sound for your celebrations in Costa Rica.',
-  },
-} as const;
+export const DICCIONARIO: Record<Idioma, DiccionarioEstatico> = {
+  es: diccionarioEs,
+  en: diccionarioEn,
+  fr: diccionarioFr,
+  pt: diccionarioPt,
+};
+
+// Catálogo dinámico para traducciones inyectadas en runtime
+const CATALOGOS_DINAMICOS: Record<Idioma, Record<string, string>> = {
+  es: {},
+  en: {},
+  fr: {},
+  pt: {},
+};
 
 export interface Preferencias {
   idioma: Idioma;
@@ -54,14 +52,20 @@ export interface Preferencias {
   alternarIdioma: () => void;
   setEscalaFuente: (escala: EscalaFuente) => void;
   setContraste: (contraste: ModoContraste) => void;
-  t: (esTexto: string, enTexto: string) => string;
-  textos: (typeof DICCIONARIO)[Idioma];
+  t: (esTexto: string, traduccion?: string | TraduccionesInline) => string;
+  tClave: (clave: string, params?: Record<string, string | number>) => string;
+  registrarTraducciones: (idioma: Idioma, traducciones: Record<string, string>) => void;
+  textos: DiccionarioEstatico;
+}
+
+function esIdiomaValido(valor: string | null): valor is Idioma {
+  return valor === 'es' || valor === 'en' || valor === 'fr' || valor === 'pt';
 }
 
 function leerIdiomaInicial(): Idioma {
   try {
     const guardado = window.localStorage.getItem(CLAVE_IDIOMA);
-    if (guardado === 'es' || guardado === 'en') return guardado;
+    if (esIdiomaValido(guardado)) return guardado;
   } catch {
     // Ignorar errores de acceso a localStorage
   }
@@ -73,7 +77,7 @@ function leerFuenteInicial(): EscalaFuente {
     const guardado = window.localStorage.getItem(CLAVE_FUENTE);
     if (guardado === 'normal' || guardado === 'grande' || guardado === 'extra') return guardado;
   } catch {
-    // Ignorar errores de acceso a localStorage
+    // Ignorar
   }
   return 'normal';
 }
@@ -83,7 +87,7 @@ function leerContrasteInicial(): ModoContraste {
     const guardado = window.localStorage.getItem(CLAVE_CONTRASTE);
     if (guardado === 'estandar' || guardado === 'alto-claro' || guardado === 'alto-oscuro') return guardado;
   } catch {
-    // Ignorar errores de acceso a localStorage
+    // Ignorar
   }
   return 'estandar';
 }
@@ -102,29 +106,25 @@ const valorPorDefecto: Preferencias = {
   setIdioma: (idioma) => {
     try {
       window.localStorage.setItem(CLAVE_IDIOMA, idioma);
-    } catch {
-      // Ignorar
-    }
+    } catch { /* ignorar */ }
     if (typeof document !== 'undefined') document.documentElement.lang = idioma;
   },
   alternarIdioma: () => {},
   setEscalaFuente: (escala) => {
     try {
       window.localStorage.setItem(CLAVE_FUENTE, escala);
-    } catch {
-      // Ignorar
-    }
+    } catch { /* ignorar */ }
     if (typeof document !== 'undefined') document.documentElement.dataset.fontScale = escala;
   },
   setContraste: (contraste) => {
     try {
       window.localStorage.setItem(CLAVE_CONTRASTE, contraste);
-    } catch {
-      // Ignorar
-    }
+    } catch { /* ignorar */ }
     if (typeof document !== 'undefined') document.documentElement.dataset.contrast = contraste;
   },
   t: (esTexto) => esTexto,
+  tClave: (clave) => DICCIONARIO.es[clave] ?? clave,
+  registrarTraducciones: () => {},
   textos: DICCIONARIO.es,
 };
 
@@ -134,6 +134,7 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
   const [idioma, setIdiomaEstado] = useState<Idioma>(leerIdiomaInicial);
   const [escalaFuente, setEscalaFuenteEstado] = useState<EscalaFuente>(leerFuenteInicial);
   const [contraste, setContrasteEstado] = useState<ModoContraste>(leerContrasteInicial);
+  const [, setVersionDinamica] = useState(0);
 
   useEffect(() => {
     aplicarEnDocumento(idioma, escalaFuente, contraste);
@@ -143,9 +144,7 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
     setIdiomaEstado(nuevo);
     try {
       window.localStorage.setItem(CLAVE_IDIOMA, nuevo);
-    } catch {
-      // Ignorar
-    }
+    } catch { /* ignorar */ }
     if (typeof document !== 'undefined') {
       document.documentElement.lang = nuevo;
     }
@@ -153,12 +152,12 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
 
   const alternarIdioma = useCallback(() => {
     setIdiomaEstado((actual) => {
-      const siguiente: Idioma = actual === 'es' ? 'en' : 'es';
+      const orden: Idioma[] = ['es', 'en', 'fr', 'pt'];
+      const indexActual = orden.indexOf(actual);
+      const siguiente = orden[(indexActual + 1) % orden.length];
       try {
         window.localStorage.setItem(CLAVE_IDIOMA, siguiente);
-      } catch {
-        // Ignorar
-      }
+      } catch { /* ignorar */ }
       if (typeof document !== 'undefined') {
         document.documentElement.lang = siguiente;
       }
@@ -170,9 +169,7 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
     setEscalaFuenteEstado(nueva);
     try {
       window.localStorage.setItem(CLAVE_FUENTE, nueva);
-    } catch {
-      // Ignorar
-    }
+    } catch { /* ignorar */ }
     if (typeof document !== 'undefined') {
       document.documentElement.dataset.fontScale = nueva;
     }
@@ -182,16 +179,55 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
     setContrasteEstado(nuevo);
     try {
       window.localStorage.setItem(CLAVE_CONTRASTE, nuevo);
-    } catch {
-      // Ignorar
-    }
+    } catch { /* ignorar */ }
     if (typeof document !== 'undefined') {
       document.documentElement.dataset.contrast = nuevo;
     }
   }, []);
 
+  const registrarTraducciones = useCallback((targetIdioma: Idioma, traducciones: Record<string, string>) => {
+    Object.assign(CATALOGOS_DINAMICOS[targetIdioma], traducciones);
+    setVersionDinamica((v) => v + 1);
+  }, []);
+
+  // Función t inteligente: 100% retrocompatible con t(es, en) histórico y multilingüe para fr y pt
   const t = useCallback(
-    (esTexto: string, enTexto: string) => (idioma === 'en' ? enTexto : esTexto),
+    (esTexto: string, traduccion?: string | TraduccionesInline): string => {
+      if (idioma === 'es') return esTexto;
+
+      // Caso A: Forma moderna con objeto de idiomas { en: '...', fr: '...', pt: '...' }
+      if (typeof traduccion === 'object' && traduccion !== null) {
+        return traduccion[idioma] ?? traduccion.en ?? esTexto;
+      }
+
+      // Caso B: Forma histórica t(esTexto, enTexto)
+      const enTexto = typeof traduccion === 'string' ? traduccion : esTexto;
+      if (idioma === 'en') return enTexto;
+
+      // Idiomas adicionales: francés o portugués
+      if (CATALOGOS_DINAMICOS[idioma][esTexto]) {
+        return CATALOGOS_DINAMICOS[idioma][esTexto];
+      }
+      if (DICCIONARIO[idioma][esTexto]) {
+        return DICCIONARIO[idioma][esTexto];
+      }
+
+      // Fallback a inglés o texto original en español
+      return enTexto || esTexto;
+    },
+    [idioma],
+  );
+
+  const tClave = useCallback(
+    (clave: string, params?: Record<string, string | number>): string => {
+      let texto = CATALOGOS_DINAMICOS[idioma][clave] ?? DICCIONARIO[idioma][clave] ?? DICCIONARIO.es[clave] ?? clave;
+      if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          texto = texto.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+        });
+      }
+      return texto;
+    },
     [idioma],
   );
 
@@ -205,9 +241,11 @@ export function PreferenciasProvider({ children }: { children: ReactNode }) {
       setEscalaFuente,
       setContraste,
       t,
+      tClave,
+      registrarTraducciones,
       textos: DICCIONARIO[idioma],
     }),
-    [idioma, escalaFuente, contraste, setIdioma, alternarIdioma, setEscalaFuente, setContraste, t],
+    [idioma, escalaFuente, contraste, setIdioma, alternarIdioma, setEscalaFuente, setContraste, t, tClave, registrarTraducciones],
   );
 
   return <ContextoPreferencias.Provider value={valor}>{children}</ContextoPreferencias.Provider>;

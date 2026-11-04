@@ -114,6 +114,11 @@ export interface ContenidoInicio {
   ctaTituloEn: string;
   ctaSubtitulo: string;
   ctaSubtituloEn: string;
+  redSocialFacebook?: string | null;
+  redSocialInstagram?: string | null;
+  redSocialTikTok?: string | null;
+  redSocialYouTube?: string | null;
+  redSocialWhatsApp?: string | null;
 }
 
 // =============== Cuenta ===============

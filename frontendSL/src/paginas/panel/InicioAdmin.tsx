@@ -36,6 +36,11 @@ const VALORES_INICIALES: ContenidoInicio = {
   ctaTituloEn: 'Reserve your date before the calendar fills up',
   ctaSubtitulo: 'Solicitar su cotización personalizada no tiene ningún costo ni compromiso.',
   ctaSubtituloEn: 'Requesting your personalized quote is completely free and without obligation.',
+  redSocialFacebook: 'https://facebook.com/saborlatinocr',
+  redSocialInstagram: 'https://instagram.com/saborlatinocr',
+  redSocialTikTok: 'https://tiktok.com/@saborlatinocr',
+  redSocialYouTube: 'https://youtube.com/@saborlatinocr',
+  redSocialWhatsApp: '50685262096',
 };
 
 export function InicioAdmin() {
@@ -49,7 +54,7 @@ export function InicioAdmin() {
     <section>
       <TituloPanel titulo="Página de Inicio (ES / EN)" />
       <p className="texto-suave">
-        Edite los titulares, subtítulos, pasos explicativos, llamadas a la acción e imágenes de la portada principal en
+        Edite los titulares, subtítulos, pasos explicativos, llamadas a la acción, redes sociales e imágenes de la portada principal en
         español e inglés.
       </p>
 
@@ -62,7 +67,7 @@ export function InicioAdmin() {
           key={contenidoActual.tituloPortada}
           inicial={contenidoActual}
           alGuardar={() => {
-            setAviso('El contenido de la Página de Inicio se guardó correctamente.');
+            setAviso('El contenido de la Página de Inicio y Redes Sociales se guardó correctamente.');
             recargar();
           }}
         />
@@ -83,7 +88,16 @@ function FormularioContenidoInicio({
   const cambiar = (campo: keyof ContenidoInicio, valor: string) =>
     setValores((prev) => ({
       ...prev,
-      [campo]: campo === 'fotoPortadaUrl' || campo === 'fotoCotizarUrl' ? valor.trim() || null : valor,
+      [campo]:
+        campo === 'fotoPortadaUrl' ||
+        campo === 'fotoCotizarUrl' ||
+        campo === 'redSocialFacebook' ||
+        campo === 'redSocialInstagram' ||
+        campo === 'redSocialTikTok' ||
+        campo === 'redSocialYouTube' ||
+        campo === 'redSocialWhatsApp'
+          ? valor.trim() || null
+          : valor,
     }));
 
   const guardar = async () => {
@@ -91,6 +105,11 @@ function FormularioContenidoInicio({
       ...valores,
       fotoPortadaUrl: valores.fotoPortadaUrl?.trim() || null,
       fotoCotizarUrl: valores.fotoCotizarUrl?.trim() || null,
+      redSocialFacebook: valores.redSocialFacebook?.trim() || null,
+      redSocialInstagram: valores.redSocialInstagram?.trim() || null,
+      redSocialTikTok: valores.redSocialTikTok?.trim() || null,
+      redSocialYouTube: valores.redSocialYouTube?.trim() || null,
+      redSocialWhatsApp: valores.redSocialWhatsApp?.trim() || null,
     });
     alGuardar();
   };
@@ -99,12 +118,12 @@ function FormularioContenidoInicio({
     <div className="caja">
       <FormularioAccion textoBoton="Guardar cambios de Inicio" alEnviar={guardar}>
         <fieldset className="grupo-campos">
-          <legend>Portada principal (Hero)</legend>
+          <legend>Portada Principal — Títulos y Presentación</legend>
           <div className="fila">
             <div className="campo">
-              <label htmlFor="ini-etiqueta-es">Etiqueta superior (Español) *</label>
+              <label htmlFor="ini-eti-es">Etiqueta superior (Español) *</label>
               <input
-                id="ini-etiqueta-es"
+                id="ini-eti-es"
                 required
                 maxLength={120}
                 value={valores.etiquetaPortada}
@@ -112,9 +131,9 @@ function FormularioContenidoInicio({
               />
             </div>
             <div className="campo">
-              <label htmlFor="ini-etiqueta-en">Etiqueta superior (Inglés) *</label>
+              <label htmlFor="ini-eti-en">Etiqueta superior (Inglés) *</label>
               <input
-                id="ini-etiqueta-en"
+                id="ini-eti-en"
                 required
                 maxLength={120}
                 value={valores.etiquetaPortadaEn}
@@ -125,9 +144,9 @@ function FormularioContenidoInicio({
 
           <div className="fila">
             <div className="campo">
-              <label htmlFor="ini-titulo-es">Título de portada (Español) *</label>
+              <label htmlFor="ini-tit-es">Título de portada (Español) *</label>
               <input
-                id="ini-titulo-es"
+                id="ini-tit-es"
                 required
                 maxLength={250}
                 value={valores.tituloPortada}
@@ -135,9 +154,9 @@ function FormularioContenidoInicio({
               />
             </div>
             <div className="campo">
-              <label htmlFor="ini-titulo-en">Título de portada (Inglés) *</label>
+              <label htmlFor="ini-tit-en">Título de portada (Inglés) *</label>
               <input
-                id="ini-titulo-en"
+                id="ini-tit-en"
                 required
                 maxLength={250}
                 value={valores.tituloPortadaEn}
@@ -148,9 +167,9 @@ function FormularioContenidoInicio({
 
           <div className="fila">
             <div className="campo">
-              <label htmlFor="ini-subtitulo-es">Subtítulo de portada (Español) *</label>
+              <label htmlFor="ini-sub-es">Subtítulo descriptivo (Español) *</label>
               <textarea
-                id="ini-subtitulo-es"
+                id="ini-sub-es"
                 required
                 maxLength={500}
                 value={valores.subtituloPortada}
@@ -158,9 +177,9 @@ function FormularioContenidoInicio({
               />
             </div>
             <div className="campo">
-              <label htmlFor="ini-subtitulo-en">Subtítulo de portada (Inglés) *</label>
+              <label htmlFor="ini-sub-en">Subtítulo descriptivo (Inglés) *</label>
               <textarea
-                id="ini-subtitulo-en"
+                id="ini-sub-en"
                 required
                 maxLength={500}
                 value={valores.subtituloPortadaEn}
@@ -171,22 +190,24 @@ function FormularioContenidoInicio({
 
           <div className="fila">
             <div className="campo">
-              <label htmlFor="ini-foto-portada">URL de fotografía de portada (opcional)</label>
+              <label htmlFor="ini-foto-portada">URL de foto de portada (opcional)</label>
               <input
                 id="ini-foto-portada"
                 type="url"
                 maxLength={500}
-                value={valores.fotoPortadaUrl ?? ''}
+                placeholder="https://ejemplo.com/portada.jpg"
+                value={valores.fotoPortadaUrl || ''}
                 onChange={(e) => cambiar('fotoPortadaUrl', e.target.value)}
               />
             </div>
             <div className="campo">
-              <label htmlFor="ini-foto-cotizar">URL de fotografía de banda de cotización (opcional)</label>
+              <label htmlFor="ini-foto-cotizar">URL de foto para cotización (opcional)</label>
               <input
                 id="ini-foto-cotizar"
                 type="url"
                 maxLength={500}
-                value={valores.fotoCotizarUrl ?? ''}
+                placeholder="https://ejemplo.com/cotizar.jpg"
+                value={valores.fotoCotizarUrl || ''}
                 onChange={(e) => cambiar('fotoCotizarUrl', e.target.value)}
               />
             </div>
@@ -194,7 +215,74 @@ function FormularioContenidoInicio({
         </fieldset>
 
         <fieldset className="grupo-campos">
-          <legend>Sección “Cómo funciona” (3 pasos)</legend>
+          <legend>Redes Sociales y Canales Oficiales</legend>
+          <div className="fila">
+            <div className="campo">
+              <label htmlFor="ini-red-fb">URL de Facebook</label>
+              <input
+                id="ini-red-fb"
+                type="url"
+                maxLength={500}
+                placeholder="https://facebook.com/saborlatinocr"
+                value={valores.redSocialFacebook || ''}
+                onChange={(e) => cambiar('redSocialFacebook', e.target.value)}
+              />
+            </div>
+            <div className="campo">
+              <label htmlFor="ini-red-ig">URL de Instagram</label>
+              <input
+                id="ini-red-ig"
+                type="url"
+                maxLength={500}
+                placeholder="https://instagram.com/saborlatinocr"
+                value={valores.redSocialInstagram || ''}
+                onChange={(e) => cambiar('redSocialInstagram', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="fila">
+            <div className="campo">
+              <label htmlFor="ini-red-tt">URL de TikTok</label>
+              <input
+                id="ini-red-tt"
+                type="url"
+                maxLength={500}
+                placeholder="https://tiktok.com/@saborlatinocr"
+                value={valores.redSocialTikTok || ''}
+                onChange={(e) => cambiar('redSocialTikTok', e.target.value)}
+              />
+            </div>
+            <div className="campo">
+              <label htmlFor="ini-red-yt">URL de YouTube</label>
+              <input
+                id="ini-red-yt"
+                type="url"
+                maxLength={500}
+                placeholder="https://youtube.com/@saborlatinocr"
+                value={valores.redSocialYouTube || ''}
+                onChange={(e) => cambiar('redSocialYouTube', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="fila">
+            <div className="campo">
+              <label htmlFor="ini-red-wa">Teléfono WhatsApp para cotizaciones (código país + número)</label>
+              <input
+                id="ini-red-wa"
+                type="text"
+                maxLength={50}
+                placeholder="50685262096"
+                value={valores.redSocialWhatsApp || ''}
+                onChange={(e) => cambiar('redSocialWhatsApp', e.target.value)}
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset className="grupo-campos">
+          <legend>Cómo funciona — Paso 1</legend>
           <div className="fila">
             <div className="campo">
               <label htmlFor="ini-paso1-tit-es">Paso 1 — Título (ES) *</label>
@@ -239,7 +327,10 @@ function FormularioContenidoInicio({
               />
             </div>
           </div>
+        </fieldset>
 
+        <fieldset className="grupo-campos">
+          <legend>Cómo funciona — Paso 2</legend>
           <div className="fila">
             <div className="campo">
               <label htmlFor="ini-paso2-tit-es">Paso 2 — Título (ES) *</label>
@@ -284,7 +375,10 @@ function FormularioContenidoInicio({
               />
             </div>
           </div>
+        </fieldset>
 
+        <fieldset className="grupo-campos">
+          <legend>Cómo funciona — Paso 3</legend>
           <div className="fila">
             <div className="campo">
               <label htmlFor="ini-paso3-tit-es">Paso 3 — Título (ES) *</label>

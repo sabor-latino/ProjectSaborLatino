@@ -1,0 +1,20 @@
+---
+description: Regla marcial de cero fugas, aislamiento de base de datos personal y verificación con Chrome DevTools MCP
+alwaysApply: true
+---
+
+# Política de Cero Fugas y Verificación de Calidad
+
+1. **Aislamiento Absoluto de Datos:**
+   - **PROHIBIDO TOCAR `SaborLatinoDb`:** Las pruebas usan únicamente bases temporales efímeras `SaborLatinoDb_Test_<Guid>` sobre `(localdb)\mssqllocaldb` y las limpian en `DisposeAsync`.
+   - La demo en vivo usa `SaborLatinoLiveDemoDb`.
+
+2. **Puertas de Calidad Automatizadas Obligatorias:**
+   - Backend: `dotnet test backendSL.Tests/ProjectSaborLatino.Tests.csproj` (81 pruebas).
+   - Frontend: `npm run lint`, `npm run build:public`, `npm run build:admin`, `npm run test:ci` (24 pruebas Vitest).
+   - Git Hooks: `.githooks/pre-commit.ps1` y `.githooks/pre-push.ps1` deben terminar en `EXIT 0`.
+
+3. **Verificación en Vivo con Navegador Real y Chrome DevTools MCP:**
+   - Levantar Backend (`http://localhost:5238`), Portal Público (`http://localhost:54526`) y Portal Admin (`http://localhost:54527`).
+   - Usar Chrome DevTools MCP para auditar la consola (`0` errores) y red (`0` fallos).
+   - Abrir el navegador real para el usuario mediante `Start-Process`.

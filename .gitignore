@@ -484,5 +484,6 @@ $RECYCLE.BIN/
 # Frontend (Node / Vite)
 node_modules/
 dist/
+dist-*/
 .vite/
 *.local

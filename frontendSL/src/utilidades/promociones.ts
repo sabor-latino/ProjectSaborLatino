@@ -1,10 +1,11 @@
 import type { Paquete, PromocionTemporada } from '../api/tipos';
 import type { PromocionAplicablePaquete } from '../componentes/TarjetaPaquete';
+import type { Idioma } from '../i18n/tipos';
 
 export function obtenerPromocionParaPaquete(
   paquete: Paquete,
   promociones: PromocionTemporada[] | null | undefined,
-  idioma: 'es' | 'en',
+  idioma: Idioma,
 ): PromocionAplicablePaquete | undefined {
   if (!Array.isArray(promociones)) return undefined;
   for (const promo of promociones) {
@@ -12,9 +13,9 @@ export function obtenerPromocionParaPaquete(
     const item = promo.paquetes?.find((pk) => pk.paqueteId === paquete.id);
     if (item) {
       const etiqueta =
-        idioma === 'en'
-          ? promo.etiquetaTemporadaEn || promo.nombreEn || promo.etiquetaTemporada || promo.nombre
-          : promo.etiquetaTemporada || promo.nombre;
+        idioma === 'es'
+          ? promo.etiquetaTemporada || promo.nombre
+          : promo.etiquetaTemporadaEn || promo.nombreEn || promo.etiquetaTemporada || promo.nombre;
       return {
         id: promo.id,
         etiqueta,

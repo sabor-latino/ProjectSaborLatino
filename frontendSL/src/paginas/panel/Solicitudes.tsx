@@ -344,11 +344,30 @@ function NuevaCotizacion({ solicitud, alTerminar }: { solicitud: Solicitud; alTe
         <label htmlFor="c-detalle">Detalle</label>
         <textarea id="c-detalle" name="detalle" maxLength={2000} placeholder="Qué incluye, horas, transporte…" value={detalle} onChange={(e) => setDetalle(e.target.value)} />
       </div>
-      {monto && (
-        <p className="total">
-          Total para el cliente: <strong className="numero">{formatoColones(Number(monto) - (Number(descuento) || 0))}</strong>
-        </p>
-      )}
+      {monto && (() => {
+        const totalCalculado = Math.max(0, Number(monto) - (Number(descuento) || 0));
+        const anticipo50 = Math.round(totalCalculado * 0.5);
+        const saldo50 = totalCalculado - anticipo50;
+        return (
+          <div className="cotizacion__resumen-pago" aria-label={t('Desglose sugerido de cotización', 'Suggested quote breakdown')}>
+            <p className="total">
+              {t('Total para el cliente:', 'Total for customer:')}{' '}
+              <strong className="numero">{formatoColones(totalCalculado)}</strong>
+            </p>
+            <p className="texto-suave cotizacion__desglose-anticipo">
+              <span>
+                {t('Anticipo sugerido 50%:', 'Suggested 50% deposit:')}{' '}
+                <strong className="numero">{formatoColones(anticipo50)}</strong>
+              </span>
+              <span aria-hidden="true"> · </span>
+              <span>
+                {t('Saldo 50% (día del evento):', '50% balance (event day):')}{' '}
+                <strong className="numero">{formatoColones(saldo50)}</strong>
+              </span>
+            </p>
+          </div>
+        );
+      })()}
     </FormularioAccion>
   );
 }

@@ -1,0 +1,15 @@
+---
+description: Regla de bitácora continua en donde lo dejamos.md, relevo entre IAs y trazabilidad
+alwaysApply: true
+---
+
+# Protocolo de Relevo y Seguimiento Continuo
+
+1. **Documento Maestro de Continuidad:**
+   - Mantener rigurosamente actualizado `donde lo dejamos.md` en la raíz del proyecto.
+   - Cada fase, PR, reparación o despliegue debe registrar fecha, autor, SHA de commit, pruebas ejecutadas y servidores activos.
+
+2. **Relevo entre Sesiones e IA:**
+   - Consultar `tasks/RELEVO_IA.md` y `tasks/plan.md` al retomar cualquier trabajo.
+   - Antes de un corte o relevo, congelar cambios limpios, verificar compilación y documentar el siguiente paso accionable.
+   - Si se requiere apoyo de Codex o relevo por agotamiento de tokens, seguir `.cursor/rules/auxilio-y-relevo-codex.mdc`.

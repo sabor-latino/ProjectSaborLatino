@@ -62,7 +62,12 @@ public class ContenidoInicioService : IContenidoInicioService
             CtaSubtitulo = Leer("Inicio.CtaSubtitulo", predeterminado.CtaSubtitulo),
             CtaSubtituloEn = Leer("Inicio.CtaSubtituloEn", predeterminado.CtaSubtituloEn),
             FotoPortadaUrl = LeerOpcional("Inicio.FotoPortadaUrl", predeterminado.FotoPortadaUrl),
-            FotoCotizarUrl = LeerOpcional("Inicio.FotoCotizarUrl", predeterminado.FotoCotizarUrl)
+            FotoCotizarUrl = LeerOpcional("Inicio.FotoCotizarUrl", predeterminado.FotoCotizarUrl),
+            RedSocialFacebook = LeerOpcional("Inicio.RedSocialFacebook", predeterminado.RedSocialFacebook),
+            RedSocialInstagram = LeerOpcional("Inicio.RedSocialInstagram", predeterminado.RedSocialInstagram),
+            RedSocialTikTok = LeerOpcional("Inicio.RedSocialTikTok", predeterminado.RedSocialTikTok),
+            RedSocialYouTube = LeerOpcional("Inicio.RedSocialYouTube", predeterminado.RedSocialYouTube),
+            RedSocialWhatsApp = LeerOpcional("Inicio.RedSocialWhatsApp", predeterminado.RedSocialWhatsApp)
         };
     }
 
@@ -95,7 +100,12 @@ public class ContenidoInicioService : IContenidoInicioService
             ("Inicio.CtaSubtitulo", dto.CtaSubtitulo.Trim(), "Subtítulo del llamado a la acción en inicio (ES)."),
             ("Inicio.CtaSubtituloEn", dto.CtaSubtituloEn.Trim(), "Subtítulo del llamado a la acción en inicio (EN)."),
             ("Inicio.FotoPortadaUrl", dto.FotoPortadaUrl?.Trim() ?? string.Empty, "URL de la fotografía principal de portada."),
-            ("Inicio.FotoCotizarUrl", dto.FotoCotizarUrl?.Trim() ?? string.Empty, "URL de la fotografía de la sección de cotización.")
+            ("Inicio.FotoCotizarUrl", dto.FotoCotizarUrl?.Trim() ?? string.Empty, "URL de la fotografía de la sección de cotización."),
+            ("Inicio.RedSocialFacebook", dto.RedSocialFacebook?.Trim() ?? string.Empty, "URL oficial de Facebook de Sabor Latino."),
+            ("Inicio.RedSocialInstagram", dto.RedSocialInstagram?.Trim() ?? string.Empty, "URL oficial de Instagram de Sabor Latino."),
+            ("Inicio.RedSocialTikTok", dto.RedSocialTikTok?.Trim() ?? string.Empty, "URL oficial de TikTok de Sabor Latino."),
+            ("Inicio.RedSocialYouTube", dto.RedSocialYouTube?.Trim() ?? string.Empty, "URL oficial de YouTube de Sabor Latino."),
+            ("Inicio.RedSocialWhatsApp", dto.RedSocialWhatsApp?.Trim() ?? string.Empty, "Número de WhatsApp oficial para atención directa.")
         };
 
         var existentes = await _db.Configuraciones
@@ -148,19 +158,9 @@ public class ContenidoInicioService : IContenidoInicioService
         ValidarCampoObligatorio(dto.CtaTituloEn, nameof(dto.CtaTituloEn), 200);
         ValidarCampoObligatorio(dto.CtaSubtitulo, nameof(dto.CtaSubtitulo), 500);
         ValidarCampoObligatorio(dto.CtaSubtituloEn, nameof(dto.CtaSubtituloEn), 500);
-
-        if (dto.FotoPortadaUrl is not null && dto.FotoPortadaUrl.Length > 500)
-        {
-            throw new DatosInvalidosException("FotoPortadaUrl no puede exceder 500 caracteres.");
-        }
-
-        if (dto.FotoCotizarUrl is not null && dto.FotoCotizarUrl.Length > 500)
-        {
-            throw new DatosInvalidosException("FotoCotizarUrl no puede exceder 500 caracteres.");
-        }
     }
 
-    private static void ValidarCampoObligatorio(string? valor, string nombre, int maxLongitud)
+    private static void ValidarCampoObligatorio(string valor, string nombre, int maxLongitud)
     {
         if (string.IsNullOrWhiteSpace(valor))
         {
@@ -198,6 +198,11 @@ public class ContenidoInicioService : IContenidoInicioService
         CtaSubtitulo = "Envíenos los datos de su actividad y reciba una propuesta formal adaptada a su recinto y presupuesto.",
         CtaSubtituloEn = "Send us your event details and receive a formal proposal tailored to your venue and budget.",
         FotoPortadaUrl = null,
-        FotoCotizarUrl = null
+        FotoCotizarUrl = null,
+        RedSocialFacebook = "https://facebook.com/saborlatinocr",
+        RedSocialInstagram = "https://instagram.com/saborlatinocr",
+        RedSocialTikTok = "https://tiktok.com/@saborlatinocr",
+        RedSocialYouTube = "https://youtube.com/@saborlatinocr",
+        RedSocialWhatsApp = "50685262096"
     };
 }

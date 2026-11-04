@@ -91,6 +91,30 @@ public static class DbSeeder
                 Clave = "Fidelidad.PorcentajeDescuento",
                 Valor = "10",
                 Descripcion = "Porcentaje de descuento por fidelidad (de 0 a 100)."
+            },
+            new Configuracion
+            {
+                Clave = "Finanzas.AnticipoPorcentaje",
+                Valor = "50",
+                Descripcion = "Porcentaje de anticipo estándar requerido para reservar la fecha del evento (0 a 100)."
+            },
+            new Configuracion
+            {
+                Clave = "Finanzas.VigenciaDiasEstandar",
+                Valor = "15",
+                Descripcion = "Días naturales de vigencia estándar predeterminados para nuevas cotizaciones."
+            },
+            new Configuracion
+            {
+                Clave = "Legal.PoliticaCancelacion",
+                Valor = "Cancelaciones con más de 15 días de anticipación tienen derecho a reintegro del 70% del anticipo. Cancelaciones con menos de 15 días no son reembolsables debido al bloqueo de fecha y equipos.",
+                Descripcion = "Política comercial de cancelaciones y reembolsos."
+            },
+            new Configuracion
+            {
+                Clave = "Legal.RequisitoToldo",
+                Valor = "Para eventos al aire libre o jardín, se requiere de forma obligatoria tarima techada e impermeable para salvaguardar los equipos electrónicos de sonido e iluminación.",
+                Descripcion = "Requerimiento de protección climática para eventos exteriores."
             }
         };
 

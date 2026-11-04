@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/contexto';
-import { usePreferencias, type EscalaFuente, type ModoContraste } from '../preferencias/PreferenciasContext';
+import type { ContenidoInicio } from '../api/tipos';
+import { useDatos } from '../hooks/useDatos';
+import { IconoFacebook, IconoInstagram, IconoTikTok, IconoWhatsApp, IconoYouTube } from './Iconos';
+import { usePreferencias, IDIOMAS_DISPONIBLES, type EscalaFuente, type ModoContraste } from '../preferencias/PreferenciasContext';
 import { obtenerModoPortal, obtenerUrlSitioPublico, SOLO_ADMIN, SOLO_PUBLICO, type ModoPortal } from '../utilidades/portal';
 
 const OPCIONES_FUENTE: { valor: EscalaFuente; etiqueta: string; descripcionEs: string; descripcionEn: string }[] = [
@@ -40,6 +43,7 @@ export function Layout({ modoPortal }: { modoPortal?: ModoPortal } = {}) {
   const esPublico = SOLO_PUBLICO || (!SOLO_ADMIN && modo === 'publico');
   const { perfil, cerrarSesion, tieneRol } = useAuth();
   const { idioma, setIdioma, escalaFuente, setEscalaFuente, contraste, setContraste, t, textos } = usePreferencias();
+  const { datos: contenido } = useDatos<ContenidoInicio>('/api/contenido-inicio');
   const esAdmin = tieneRol('Administrador', 'Superadministrador');
   const navegar = useNavigate();
   const { pathname } = useLocation();
@@ -193,30 +197,24 @@ export function Layout({ modoPortal }: { modoPortal?: ModoPortal } = {}) {
                   </span>
                 </button>
                 <div className="accesibilidad-opciones">
-                  <button
-                    type="button"
-                    className="accesibilidad-btn"
-                    aria-pressed={idioma === 'es'}
-                    aria-label={t('Cambiar idioma a español (ES)', 'Switch language to Spanish (ES)')}
-                    onClick={() => {
-                      setIdioma('es');
-                      setExpandidoIdioma(false);
-                    }}
-                  >
-                    ES — {t('Español', 'Spanish')}
-                  </button>
-                  <button
-                    type="button"
-                    className="accesibilidad-btn"
-                    aria-pressed={idioma === 'en'}
-                    aria-label={t('Cambiar idioma a inglés (EN)', 'Switch language to English (EN)')}
-                    onClick={() => {
-                      setIdioma('en');
-                      setExpandidoIdioma(false);
-                    }}
-                  >
-                    EN — {t('Inglés', 'English')}
-                  </button>
+                  {IDIOMAS_DISPONIBLES.map((item) => (
+                    <button
+                      key={item.codigo}
+                      type="button"
+                      className="accesibilidad-btn"
+                      aria-pressed={idioma === item.codigo}
+                      aria-label={t(
+                        `Cambiar idioma a ${item.nombre.toLowerCase()} (${item.etiqueta})`,
+                        `Switch language to ${item.nombreEn} (${item.etiqueta})`
+                      )}
+                      onClick={() => {
+                        setIdioma(item.codigo);
+                        setExpandidoIdioma(false);
+                      }}
+                    >
+                      {item.etiqueta} — {t(item.nombre, item.nombreEn)}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -325,6 +323,62 @@ export function Layout({ modoPortal }: { modoPortal?: ModoPortal } = {}) {
                   Sabor Latino
                 </Link>
                 <p>{textos.esloganPie}</p>
+                <div className="pie__redes-sociales" aria-label={t('Redes sociales oficiales', 'Official social networks')}>
+                  <span className="pie__subtitulo-redes">{t('Síganos en redes', 'Follow us')}</span>
+                  <div className="redes-botones">
+                    <a
+                      href={contenido?.redSocialFacebook || 'https://facebook.com/saborlatinocr'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="boton-red-social boton-red-social--facebook"
+                      aria-label="Facebook · Sabor Latino"
+                    >
+                      <IconoFacebook />
+                    </a>
+                    <a
+                      href={contenido?.redSocialInstagram || 'https://instagram.com/saborlatinocr'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="boton-red-social boton-red-social--instagram"
+                      aria-label="Instagram · Sabor Latino"
+                    >
+                      <IconoInstagram />
+                    </a>
+                    <a
+                      href={contenido?.redSocialTikTok || 'https://tiktok.com/@saborlatinocr'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="boton-red-social boton-red-social--tiktok"
+                      aria-label="TikTok · Sabor Latino"
+                    >
+                      <IconoTikTok />
+                    </a>
+                    <a
+                      href={contenido?.redSocialYouTube || 'https://youtube.com/@saborlatinocr'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="boton-red-social boton-red-social--youtube"
+                      aria-label="YouTube · Sabor Latino"
+                    >
+                      <IconoYouTube />
+                    </a>
+                    <a
+                      href={
+                        contenido?.redSocialWhatsApp
+                          ? (contenido.redSocialWhatsApp.startsWith('http')
+                              ? contenido.redSocialWhatsApp
+                              : `https://wa.me/${contenido.redSocialWhatsApp.replace(/\D/g, '')}`)
+                          : 'https://wa.me/50685262096'
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="boton-red-social boton-red-social--whatsapp"
+                      aria-label="WhatsApp · Sabor Latino"
+                    >
+                      <IconoWhatsApp />
+                    </a>
+                  </div>
+                </div>
               </div>
               <div>
                 <h2 className="pie__titulo">{textos.explorar}</h2>

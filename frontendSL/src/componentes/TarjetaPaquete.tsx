@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Link } from 'react-router-dom';
 import type { Paquete } from '../api/tipos';
 import { usePreferencias } from '../preferencias/PreferenciasContext';
@@ -9,6 +10,50 @@ export interface PromocionAplicablePaquete {
   etiqueta: string;
   porcentajeDescuento: number;
   precioPromocional: number;
+}
+
+export function obtenerInsigniaComercial(
+  paquete: Paquete,
+  t: (es: string, en: string) => string,
+): string {
+  const nom = `${paquete.nombre} ${paquete.nombreEn ?? ''}`.toLowerCase();
+  const srv = `${paquete.servicioNombre} ${paquete.servicioNombreEn ?? ''}`.toLowerCase();
+  const desc = `${paquete.descripcion ?? ''} ${paquete.descripcionEn ?? ''}`.toLowerCase();
+  const combinada = `${nom} ${srv} ${desc}`;
+
+  // 1. Sonorización / producción acústica profesional
+  if (
+    nom.includes('sonoriza') ||
+    srv.includes('sonoriza') ||
+    srv.includes('sound & production') ||
+    (srv.includes('sonido') && !combinada.includes('discomóvil') && !combinada.includes('karaoke'))
+  ) {
+    return t('⚡ Alta fidelidad', '⚡ High fidelity');
+  }
+
+  // 2. Orquestas, grupos musicales y ensambles
+  if (
+    nom.includes('orquesta') ||
+    nom.includes('grupo') ||
+    srv.includes('música en vivo') ||
+    srv.includes('live music') ||
+    combinada.includes('boda') ||
+    combinada.includes('wedding')
+  ) {
+    return t('💍 Recomendado para bodas', '💍 Recommended for weddings');
+  }
+
+  // 3. DJ, Karaoke, Discomóvil
+  if (
+    combinada.includes('dj') ||
+    combinada.includes('karaoke') ||
+    combinada.includes('discomóvil') ||
+    combinada.includes('discomovil')
+  ) {
+    return t('⭐ Más cotizado', '⭐ Most popular');
+  }
+
+  return t('⭐ Más cotizado', '⭐ Most popular');
 }
 
 // Tarjeta de un paquete: foto grande, equipo incluido, ficha técnica desplegable, promoción y botón para cotizar
@@ -26,6 +71,7 @@ export function TarjetaPaquete({
   const servicioNombre =
     idioma === 'en' && paquete.servicioNombreEn ? paquete.servicioNombreEn : paquete.servicioNombre;
   const fichaTecnica = idioma === 'en' && paquete.fichaTecnicaEn ? paquete.fichaTecnicaEn : paquete.fichaTecnica;
+  const insigniaComercial = obtenerInsigniaComercial(paquete, t);
 
   const tieneFichaTecnica = Boolean(
     paquete.potenciaSonido ||
@@ -41,6 +87,11 @@ export function TarjetaPaquete({
     ? `/solicitar?paquete=${paquete.id}&promocion=${promocion.id}`
     : `/solicitar?paquete=${paquete.id}`;
 
+  const tienePantalla =
+    paquete.equipos.some((e) => `${e.equipoNombre} ${e.especificacionTecnica || ''}`.toLowerCase().includes('pantalla')) ||
+    servicioNombre.toLowerCase().includes('karaoke') ||
+    nombre.toLowerCase().includes('karaoke');
+
   return (
     <article className="paquete">
       <div className="paquete__foto">
@@ -54,7 +105,29 @@ export function TarjetaPaquete({
       </div>
 
       <div className="paquete__cuerpo">
+        <span className="paquete__insignia-comercial">{insigniaComercial}</span>
         <h3>{nombre}</h3>
+
+        <div className="paquete__destacados-tecnicos" role="list" aria-label={t('Aspectos técnicos destacados', 'Key technical highlights')}>
+          {paquete.potenciaSonido && (
+            <span className="insignia-tecnica insignia-tecnica--potencia" title={t('Potencia acústica profesional del paquete', 'Professional acoustic power rating')}>
+              <span aria-hidden="true">⚡</span>
+              <span>{paquete.potenciaSonido}</span>
+            </span>
+          )}
+          {tienePantalla && (
+            <span className="insignia-tecnica insignia-tecnica--pantalla" title={t('Pantalla de karaoke LED de 55 pulgadas Full HD en pedestal ajustable incluida', '55-inch Full HD LED karaoke screen on adjustable stand included')}>
+              <span aria-hidden="true">📺</span>
+              <span>{t('Pantalla LED 55" Full HD', '55" Full HD LED Screen')}</span>
+            </span>
+          )}
+        </div>
+
+        <div className="paquete__horas" aria-label={t('Horas de música incluidas', 'Included music hours')}>
+          <span className="paquete__horas-icono" aria-hidden="true">⏱️</span>
+          <span>{t('4 horas de música incluidas · Hora adicional disponible', '4 hours of music included · Additional hour available')}</span>
+        </div>
+
         {descripcion && <p className="paquete__descripcion">{descripcion}</p>}
 
         {paquete.equipos.length > 0 && (

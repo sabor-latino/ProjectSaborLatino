@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ProjectSaborLatino.DTOs.Sistema;
 
-// Contenido editable de la página de inicio (bilingüe ES/EN)
+// Contenido editable de la página de inicio (bilingüe ES/EN) y redes sociales
 public class ContenidoInicioDto
 {
     [Required, MaxLength(120)]
@@ -77,4 +77,19 @@ public class ContenidoInicioDto
 
     [MaxLength(500), UrlHttpAbsoluta]
     public string? FotoCotizarUrl { get; set; }
+
+    [MaxLength(500), UrlHttpAbsoluta]
+    public string? RedSocialFacebook { get; set; }
+
+    [MaxLength(500), UrlHttpAbsoluta]
+    public string? RedSocialInstagram { get; set; }
+
+    [MaxLength(500), UrlHttpAbsoluta]
+    public string? RedSocialTikTok { get; set; }
+
+    [MaxLength(500), UrlHttpAbsoluta]
+    public string? RedSocialYouTube { get; set; }
+
+    [MaxLength(50)]
+    public string? RedSocialWhatsApp { get; set; }
 }

@@ -359,3 +359,33 @@ Implementación visual por incrementos completada por frontend: fieldsets/ayudas
 Causa del recorte de precio confirmada: selector genérico .paquete p aplicaba clamp de descripción también al párrafo .precio; reemplazado por clase específica de descripción y pie flexible. QA Chrome encontró otro Required a320A++: datetime-local mínimo intrínseco excedía3px. Corregido con min-inline-size:0/width/max-width dentro del formulario; validación real de campo aún pendiente QA.
 
 Primera tanda hooks terminó EXIT0: backend81/81 y frontend24/24, lint/tipos/build genérico/public/admin y separación26/35módulos. Segundo gate frontend incluyó fixfecha. Registro TEMP/sabor-visual-hooks-df64fd5a33bc44fbb6c0be0bb6ea01c1.log. Falta cierre matrizChrome/capturas/E2E y repetirprecommit tras QA estable para acreditar todafuente final. Revisiónfresh independiente de fuente/fix sin Required estático; no equivale a auditoría visual.
+
+## Reparación autorizada en ejecución — 2026-11-03
+
+El usuario ordenó «Soluciona todos los errores». Worktree activo C:/Users/ownne/source/repos/SaborLatino-azure-fix, rama fix/azure-schema-baseline, base main161531e. Tres agentes nuevos sí responden: CI implementa script/12 regresiones Windows/Linux, SQL revisa artefactos/seguridad, QA hace smoke producción de solo lectura. Rectificación del reporte anterior: el blob remoto usa NUL correctamente; los escapes duplicados eran JSON. Defectos reales: orden Path Windows/POSIX y baseline8 ante fuente9.
+
+Producción SQL acreditó8 migraciones exactas, correo obligatorio y ausencia de nuevas columnas/índice. Se aplicó migration9 con SQL revisado SHA256 C181C2CAA8AC1CA96C060571350B958F278AFC761C2C3F70F5941112817FBF4F, transacción/XACT_ABORT/TRY-CATCH/rollback y destino Azure validado. Solicitudes1→1, acceso temporal retirado; inspector posterior completo en curso antes de baseline9. Nunca tocar base personal LocalDB.
+
+Hooks locales precommit/prepush EXIT0:81backend/24frontend,lint/tipos/builds y separación26/35; script12regresiones verdes. npm audit producción0;12moderadas solo toolingESLint/minimatch sin parche10 compatible, no introducir override11 o npmforce en esta reparación. Baseline Chrome público+login admin:5rutas/8vistas, consola/red/overflow limpios después del warmup SQL; sin crear solicitudes ni mensajes.
+
+Copia del paquete API anterior capturada desde Kudu, hash D67AD3822FBFA4AF240821AA85ECCB7D1606A750D135F9B9060C0414F1B3CA4A en tasks/azure-repair/.artifacts; retención SQLPITR7días acreditada, no se ensayó restauración. Nuevo ZIP de appmain161531e preparado, todavía sin publicar. Falta SQLpostcheck, baseline9, PR/CI Linux y publicación/verificación. Preservar autorización explícita para merge según AGENTS al llegar a un PR concreto revisado.
+
+## Publicación y fusión autorizada del PR20
+
+El usuario autorizó explícitamente fusionar PR20 mediante respuesta a la pregunta de aprobación. ConectorGitHub fusionó head8b842a6 en main62e0d6a1c3eb978cffe447c39fa7480db17275df. CI de rama41647261461 y PR41647268262 pasaron, incluidos Windows/Linux12regresiones. No se pidió confirmación duplicada.
+
+SQLpostcheck9 completo verde, índices/columnas correctos, solicitud conservada1→1 y reglas temporales retiradas. Publicación manual de la appmain161531e completada: Kudu286d55aa15af4e6ea311c1238bb426c1 status4; DLL remota SHA256 BF38626BEBCDA4A20E41D9A493013E601EC19F17E6BDF533E6A04A0BB32F1258 igual al paquete revisado. Postdeploy Chrome5rutas/8vistas, consola/red/overflow limpios, OPTIONS204ambosorígenes. Probes sin crear solicitudes: body{}400 con4errores requeridos y sinCorreoContacto, marker sinJWT401. El adaptador tuvo que decodificar UTF8 de byte[] antes de interpretar ProblemDetails; comprobación final estricta guardada.
+
+El último paso pendiente es observar CI main41647996591 y el nuevo DeployAzure automático del SHA62e0d6a. No afirmar automatización completada hasta jobrealverde. Los6archivos publicados coinciden byteporbyte con localhashobj y origin/main. La rama local sigue basada161531e con patchya publicado medianteconector; no descartar cambioslocales/docs/artefactos por confundirlos con trabajo inédito. No hacer push de rama local sin reconciliar contexto.
+
+Apertura visible de Chrome desde terminal fue rechazada por revisiónautomática (blocked by policy); CUAcreateBrowserTab devolvió Local browser use is disabled in Work settings. No se alteraron ajustes ni se sorteó la restricción. El smoke headless Chrome DevTools previamente autorizado sí generó6capturas reales y pasó. Informar este límite al cierre si sigue vigente.
+
+## Cierre verificado — reparación Azure completada
+
+PR20 fusionado con autorización expresa en main62e0d6a1c3eb978cffe447c39fa7480db17275df. CI main41647996591 success y Deploy41648425222 intento2 success (job125962164961). Todos los pasos reales verdes: SHA/CI, baseline SQL, publish, OIDC, webapps-deploy y HTTP/CORS. Kudu83679e11c78e4730a3232c7fc73e0dfc status4activecomplete.
+
+El intento1 reveló otro bloqueo real que antes no se había ejecutado: AADSTS700213 porque GitHub desde julio2026 presenta subject con IDs inmutables. Se corrigió únicamente FICgithub-main de la identidad existente a repo:sabor-latino@343788676/ProjectSaborLatino@1389433606:ref:refs/heads/main. Issuer/audience/principal/rolWebsiteContributor appscope se conservaron; sin secretos ni roles nuevos. La hipótesis inicial de escapes duplicados se rectificó como representación JSON.
+
+SQL9 completo verificado, solicitud existente1→1 y reglas temporales retiradas. QA final posterior al automático:5rutas/8vistas/6capturas,0errores/advertenciasconsola,0fallos/pendientesred,0overflow,GET200 yOPTIONS204ambosportales. No solicitudes válidas ni mensajes reales creados. Python12 y backend81/frontend24/linters/builds/hooks/CI verdes. Producción npm audit0,12avisosmoderados devtooling registrados separados. Informe completo tasks/azure-repair/RESULTADO.md, QA tasks/qa-azure/RESULTADO.md. Reparación de despliegue terminada; no repetir migración ni revivir el diagnóstico descartado.
+
+Estado Git final: rama local fix/azure-repair-verified, HEAD62e0d6a igual a origin/main. Para conservar historia se archivaron solo los seis archivos propios ya publicados en un checkpoint Git antes del cambio; no se borró ni reaplicó ese checkpoint. Documentos/evidencias locales y cambios ajenos se preservaron. La advertencia histórica sobre patch local pendiente queda superada por esta sincronización. Ver tasks/azure-repair/.artifacts/local-checkpoint.json.
