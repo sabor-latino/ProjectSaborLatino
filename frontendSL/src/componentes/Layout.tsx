@@ -416,7 +416,11 @@ export function Layout({ modoPortal }: { modoPortal?: ModoPortal } = {}) {
               <p>
                 {t(
                   'Portal Administrativo Privado · Acceso exclusivo para personal autorizado.',
-                  'Private Administrative Portal · Exclusive access for authorized staff.',
+                  {
+                    en: 'Private Administrative Portal · Exclusive access for authorized staff.',
+                    fr: 'Portail Administratif Privé · Accès exclusif au personnel autorisé.',
+                    pt: 'Portal Administrativo Privado · Acesso exclusivo para equipe autorizada.',
+                  },
                 )}
               </p>
             </div>

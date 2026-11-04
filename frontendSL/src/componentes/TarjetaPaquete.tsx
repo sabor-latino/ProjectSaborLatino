@@ -208,7 +208,7 @@ export function TarjetaPaquete({
           <Link
             to={rutaSolicitar}
             className="boton boton--accion boton--chico"
-            aria-label={t(`Cotizar ${nombre}`, `Quote ${nombre}`)}
+            aria-label={`${t('Cotizar', 'Quote')} ${nombre}`}
           >
             {t('Cotizar', 'Get quote')}
           </Link>

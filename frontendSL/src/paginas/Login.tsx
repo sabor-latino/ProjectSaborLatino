@@ -92,7 +92,7 @@ export function Login() {
           <p className="antetitulo">{t('Acceso interno restringido', 'Restricted internal access')}</p>
           <h1 className="titulo-seccion">
             {tipoAcceso === 'admin'
-              ? t('Portal Administrativo', 'Administrative Portal')
+              ? t('Portal Administrativo', { en: 'Administrative Portal', fr: 'Portail Administratif', pt: 'Portal Administrativo' })
               : t('Portal de Personal y Empleados', 'Staff & Employee Portal')}
           </h1>
         </div>

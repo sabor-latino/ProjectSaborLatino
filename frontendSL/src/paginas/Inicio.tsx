@@ -173,7 +173,7 @@ export function Inicio() {
                     </p>
                   )}
                   <p className="texto-suave">
-                    {t('Válida hasta el', 'Valid until')} {formatoFecha(promo.fechaFin)}
+                    {t('Válida hasta el', 'Valid until')} {formatoFecha(promo.fechaFin, idioma)}
                   </p>
                   {promo.paquetes && promo.paquetes.length > 0 && (
                     <ul className="promo-card__paquetes" aria-label={t('Paquetes incluidos', 'Included packages')}>
@@ -250,7 +250,7 @@ export function Inicio() {
                     key={s.id}
                     to={`/paquetes?servicio=${s.id}`}
                     className="servicio"
-                    title={t(`Ver paquetes de ${nombreServ}`, `View ${nombreServ} packages`)}
+                    title={`${t('Ver paquetes de', 'View packages of')} ${nombreServ}`}
                   >
                     <h3>{nombreServ}</h3>
                     <span className="servicio__flecha" aria-hidden="true">

@@ -65,7 +65,7 @@ export function Paquetes() {
                 {nombrePromo} · -{promo.porcentajeDescuento}%
               </h2>
               <p className="texto-suave">
-                {t('Vigencia hasta el', 'Valid until')} {formatoFecha(promo.fechaFin)}
+                {t('Vigencia hasta el', 'Valid until')} {formatoFecha(promo.fechaFin, idioma)}
                 {promo.codigoPromocional ? ` · ${t('Código:', 'Code:')} ${promo.codigoPromocional}` : ''}
               </p>
             </div>
