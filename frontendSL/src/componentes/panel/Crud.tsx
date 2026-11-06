@@ -3,12 +3,13 @@ import { api } from '../../api/cliente';
 import { useDatos } from '../../hooks/useDatos';
 import { Cargando, Mensaje } from '../Estado';
 import { Dialogo, FormularioAccion, TituloPanel } from './Piezas';
+import { CampoImagen } from './CampoImagen';
 
 // Un campo del formulario de crear/editar
 export interface CampoCrud {
   nombre: string;
   etiqueta: string;
-  tipo?: 'texto' | 'area' | 'numero' | 'url' | 'check' | 'select';
+  tipo?: 'texto' | 'area' | 'numero' | 'url' | 'check' | 'select' | 'imagen';
   requerido?: boolean;
   max?: number;
   min?: number;
@@ -178,6 +179,25 @@ function CampoFormulario({
 }) {
   const id = `campo-${campo.nombre}`;
   const texto = valor === null || valor === undefined ? '' : String(valor);
+
+  if (campo.tipo === 'imagen') {
+    return (
+      <div className="campo">
+        <label htmlFor={id}>
+          {campo.etiqueta}
+          {campo.requerido && ' *'}
+        </label>
+        <CampoImagen
+          id={id}
+          nombre={campo.nombre}
+          valor={texto}
+          alCambiar={(url) => cambiar(campo.nombre, url)}
+          requerido={campo.requerido}
+          ayuda={campo.ayuda}
+        />
+      </div>
+    );
+  }
 
   if (campo.tipo === 'check') {
     return (

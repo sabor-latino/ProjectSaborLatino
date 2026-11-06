@@ -150,4 +150,45 @@ export const api = {
   put: <T>(ruta: string, cuerpo?: unknown) => pedir<T>('PUT', ruta, cuerpo ?? {}),
   patch: <T>(ruta: string, cuerpo?: unknown) => pedir<T>('PATCH', ruta, cuerpo ?? {}),
   delete: <T>(ruta: string) => pedir<T>('DELETE', ruta),
+  postForm: <T>(ruta: string, form: FormData) => pedirForm<T>(ruta, form),
 };
+
+async function pedirForm<T>(ruta: string, form: FormData): Promise<T> {
+  const token = obtenerToken();
+  const cabeceras: Record<string, string> = { Accept: 'application/json' };
+  if (token) {
+    cabeceras.Authorization = `Bearer ${token}`;
+  }
+
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${URL_API}${ruta}`, {
+      method: 'POST',
+      headers: cabeceras,
+      body: form,
+    });
+  } catch {
+    throw new ErrorApi(0, ['No se pudo conectar con el servidor. Revise que la API esté encendida.']);
+  }
+
+  if (respuesta.status === 401 && token) {
+    borrarSesion();
+    window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+  }
+
+  const texto = await respuesta.text();
+  let datos: unknown = null;
+  if (texto) {
+    try {
+      datos = JSON.parse(texto);
+    } catch {
+      datos = null;
+    }
+  }
+
+  if (!respuesta.ok) {
+    throw new ErrorApi(respuesta.status, mensajesDeError(respuesta.status, datos as ProblemDetails | null));
+  }
+
+  return datos as T;
+}

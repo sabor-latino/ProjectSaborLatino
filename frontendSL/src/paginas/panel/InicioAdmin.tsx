@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../../api/cliente';
 import type { ContenidoInicio } from '../../api/tipos';
 import { Cargando, Mensaje } from '../../componentes/Estado';
+import { CampoImagen } from '../../componentes/panel/CampoImagen';
 import { FormularioAccion, TituloPanel } from '../../componentes/panel/Piezas';
 import { useDatos } from '../../hooks/useDatos';
 
@@ -190,25 +191,23 @@ function FormularioContenidoInicio({
 
           <div className="fila">
             <div className="campo">
-              <label htmlFor="ini-foto-portada">URL de foto de portada (opcional)</label>
-              <input
+              <label htmlFor="ini-foto-portada">Foto de portada (hero de inicio)</label>
+              <CampoImagen
                 id="ini-foto-portada"
-                type="url"
-                maxLength={500}
-                placeholder="https://ejemplo.com/portada.jpg"
-                value={valores.fotoPortadaUrl || ''}
-                onChange={(e) => cambiar('fotoPortadaUrl', e.target.value)}
+                nombre="fotoPortadaUrl"
+                valor={valores.fotoPortadaUrl || ''}
+                alCambiar={(url) => cambiar('fotoPortadaUrl', url)}
+                ayuda="Opcional. Foto principal en la portada del sitio web."
               />
             </div>
             <div className="campo">
-              <label htmlFor="ini-foto-cotizar">URL de foto para cotización (opcional)</label>
-              <input
+              <label htmlFor="ini-foto-cotizar">Foto para sección de cotización</label>
+              <CampoImagen
                 id="ini-foto-cotizar"
-                type="url"
-                maxLength={500}
-                placeholder="https://ejemplo.com/cotizar.jpg"
-                value={valores.fotoCotizarUrl || ''}
-                onChange={(e) => cambiar('fotoCotizarUrl', e.target.value)}
+                nombre="fotoCotizarUrl"
+                valor={valores.fotoCotizarUrl || ''}
+                alCambiar={(url) => cambiar('fotoCotizarUrl', url)}
+                ayuda="Opcional. Foto de fondo en la sección para solicitar cotización."
               />
             </div>
           </div>

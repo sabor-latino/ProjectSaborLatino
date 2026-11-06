@@ -21,7 +21,7 @@ export function GaleriaAdmin() {
       campos={[
         { nombre: 'titulo', etiqueta: 'Título (Español)', requerido: true, max: 150 },
         { nombre: 'tituloEn', etiqueta: 'Título (Inglés)', max: 150 },
-        { nombre: 'imagenUrl', etiqueta: 'Dirección de la imagen', tipo: 'url', requerido: true, max: 500 },
+        { nombre: 'imagenUrl', etiqueta: 'Fotografía', tipo: 'imagen', requerido: true, max: 500 },
         { nombre: 'orden', etiqueta: 'Orden', tipo: 'numero', min: 0, max: 1000, ayuda: 'Las de menor número salen primero.' },
         { nombre: 'activo', etiqueta: 'Activa (visible en el sitio)', tipo: 'check' },
       ]}

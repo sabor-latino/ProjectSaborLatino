@@ -3,6 +3,7 @@ import { api } from '../../api/cliente';
 import type { Paquete, PromocionTemporada } from '../../api/tipos';
 import { Cargando, Mensaje } from '../../componentes/Estado';
 import { Dialogo, FormularioAccion, TituloPanel } from '../../componentes/panel/Piezas';
+import { CampoImagen } from '../../componentes/panel/CampoImagen';
 import { useDatos } from '../../hooks/useDatos';
 import { formatoColones, formatoFecha, paraInputFecha } from '../../utilidades/formato';
 
@@ -312,6 +313,17 @@ export function PromocionesAdmin() {
                   onChange={(e) => cambiar('fechaFin', e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="campo">
+              <label htmlFor="pr-img">Banner o afiche de la promoción</label>
+              <CampoImagen
+                id="pr-img"
+                nombre="imagenUrl"
+                valor={editando.valores.imagenUrl}
+                alCambiar={(url) => cambiar('imagenUrl', url)}
+                ayuda="Opcional. Se muestra como portada en la promoción."
+              />
             </div>
 
             <div className="campo">

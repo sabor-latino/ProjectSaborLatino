@@ -77,7 +77,7 @@ function Servicios() {
         { nombre: 'nombreEn', etiqueta: 'Nombre (Inglés)', max: 100 },
         { nombre: 'descripcion', etiqueta: 'Descripción (Español)', tipo: 'area', max: 1000 },
         { nombre: 'descripcionEn', etiqueta: 'Descripción (Inglés)', tipo: 'area', max: 1000 },
-        { nombre: 'imagenUrl', etiqueta: 'Dirección de la imagen', tipo: 'url', max: 500 },
+        { nombre: 'imagenUrl', etiqueta: 'Fotografía', tipo: 'imagen', max: 500 },
         { nombre: 'activo', etiqueta: 'Activo (visible en el sitio)', tipo: 'check' },
       ]}
       nuevo={{ nombre: '', nombreEn: '', descripcion: '', descripcionEn: '', imagenUrl: '', activo: true }}
@@ -167,7 +167,7 @@ function Paquetes() {
         },
         { nombre: 'fichaTecnica', etiqueta: 'Notas técnicas adicionales (Español)', tipo: 'area', max: 1500 },
         { nombre: 'fichaTecnicaEn', etiqueta: 'Notas técnicas adicionales (Inglés)', tipo: 'area', max: 1500 },
-        { nombre: 'imagenUrl', etiqueta: 'Dirección de la imagen', tipo: 'url', max: 500 },
+        { nombre: 'imagenUrl', etiqueta: 'Fotografía', tipo: 'imagen', max: 500 },
         { nombre: 'activo', etiqueta: 'Activo (visible en el sitio)', tipo: 'check' },
       ]}
       nuevo={{

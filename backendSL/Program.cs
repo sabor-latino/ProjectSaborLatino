@@ -61,6 +61,7 @@ builder.Services.AddScoped<IConfiguracionService, ConfiguracionService>();
 builder.Services.AddScoped<IContenidoInicioService, ContenidoInicioService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
 builder.Services.AddScoped<ITraduccionI18nService, TraduccionI18nService>();
+builder.Services.AddScoped<IArchivoStorageService, ArchivoStorageService>();
 
 // CORS para el frontend React
 const string PoliticaFrontend = "Frontend";
@@ -92,6 +93,26 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(PoliticaFrontend);
+
+var uploadsDir = builder.Configuration["Almacenamiento:RutaUploads"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "uploads");
+
+if (!Directory.Exists(uploadsDir))
+{
+    Directory.CreateDirectory(uploadsDir);
+}
+
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsDir),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=31536000, immutable");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+    }
+});
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
