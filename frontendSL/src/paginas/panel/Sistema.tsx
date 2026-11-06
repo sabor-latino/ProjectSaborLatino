@@ -4,7 +4,7 @@ import type { Configuracion as DatosConfiguracion, RegistroBitacora, Usuario } f
 import { Cargando, Mensaje } from '../../componentes/Estado';
 import { FormularioAccion, TituloPanel } from '../../componentes/panel/Piezas';
 import { useDatos } from '../../hooks/useDatos';
-import { formatoFechaHora } from '../../utilidades/formato';
+import { formatoFechaHoraUtc } from '../../utilidades/formato';
 
 // Nombres claros para las claves de configuración que trae la base de datos
 const NOMBRES_CLAVE: Record<string, string> = {
@@ -128,7 +128,7 @@ export function Bitacora() {
               {datos.map((b) => (
                 <tr key={b.id}>
                   <td data-etiqueta="Fecha" className="numero">
-                    {formatoFechaHora(b.fecha)}
+                    {formatoFechaHoraUtc(b.fecha)}
                   </td>
                   <td data-etiqueta="Quién">{nombre(b.usuarioId)}</td>
                   <td data-etiqueta="Acción">{b.accion}</td>

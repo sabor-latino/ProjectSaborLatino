@@ -32,6 +32,13 @@ export function formatoFechaHora(valor: string, idioma: Idioma = 'es'): string {
   return new Intl.DateTimeFormat(loc, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(valor));
 }
 
+// Para marcas de tiempo de auditoría o base de datos que vienen en UTC
+export function formatoFechaHoraUtc(valor: string, idioma: Idioma = 'es'): string {
+  if (!valor) return '—';
+  const isoUtc = valor.endsWith('Z') || valor.includes('+') ? valor : `${valor}Z`;
+  return formatoFechaHora(isoUtc, idioma);
+}
+
 // Fecha y hora actual en el formato que usa <input type="datetime-local">
 export function ahoraParaInput(): string {
   const ahora = new Date();

@@ -5,7 +5,7 @@ import { Cargando, Mensaje } from '../../componentes/Estado';
 import { Dialogo, FormularioAccion, Insignia, TituloPanel } from '../../componentes/panel/Piezas';
 import { useDatos } from '../../hooks/useDatos';
 import { ESTADOS_SOLICITUD, nombreEstado } from '../../utilidades/estados';
-import { ahoraParaInput, formatoColones, formatoFecha, formatoFechaHora } from '../../utilidades/formato';
+import { ahoraParaInput, formatoColones, formatoFecha, formatoFechaHora, formatoFechaHoraUtc } from '../../utilidades/formato';
 import { useAuth } from '../../auth/contexto';
 import { usePreferencias } from '../../preferencias/PreferenciasContext';
 
@@ -109,7 +109,7 @@ export function Solicitudes() {
                     <dt>Cuenta</dt>
                     <dd>{s.clienteUsuarioId ? 'Cliente registrado' : 'Visitante sin cuenta'}</dd>
                     <dt>{t('Registrada', 'Registered')}</dt>
-                    <dd>{formatoFechaHora(s.fechaCreacion)}</dd>
+                    <dd>{formatoFechaHoraUtc(s.fechaCreacion)}</dd>
                     {s.comentarios && (
                       <>
                         <dt>Comentarios</dt>
@@ -122,7 +122,7 @@ export function Solicitudes() {
                     <div>
                       <h2 id={`recepcion-whatsapp-${s.id}`} className="recepcion-whatsapp__titulo">{t('Recepción por WhatsApp', 'WhatsApp receipt')}</h2>
                       <p>{s.recibidoWhatsAppEn ? t('Recepción confirmada manualmente', 'Receipt manually confirmed') : t('Sin confirmación de recepción', 'Receipt not confirmed')}</p>
-                      {s.recibidoWhatsAppEn && <p className="texto-suave">{formatoFechaHora(s.recibidoWhatsAppEn)}</p>}
+                      {s.recibidoWhatsAppEn && <p className="texto-suave">{formatoFechaHoraUtc(s.recibidoWhatsAppEn)}</p>}
                       {s.recibidoWhatsAppPorUsuarioId && <p className="recepcion-whatsapp__autor">{t('Registrado por', 'Recorded by')}: <span>{s.recibidoWhatsAppPorUsuarioId}</span></p>}
                     </div>
                     {!s.recibidoWhatsAppEn && tieneRol('Administrador', 'Superadministrador') && (
