@@ -191,7 +191,7 @@ function FormularioContenidoInicio({
 
           <div className="fila">
             <div className="campo">
-              <label htmlFor="ini-foto-portada">Foto de portada (hero de inicio)</label>
+              <label htmlFor="ini-foto-portada-archivo">Foto de portada (hero de inicio)</label>
               <CampoImagen
                 id="ini-foto-portada"
                 nombre="fotoPortadaUrl"
@@ -201,7 +201,7 @@ function FormularioContenidoInicio({
               />
             </div>
             <div className="campo">
-              <label htmlFor="ini-foto-cotizar">Foto para sección de cotización</label>
+              <label htmlFor="ini-foto-cotizar-archivo">Foto para sección de cotización</label>
               <CampoImagen
                 id="ini-foto-cotizar"
                 nombre="fotoCotizarUrl"

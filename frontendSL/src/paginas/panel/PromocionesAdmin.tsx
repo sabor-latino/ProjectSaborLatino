@@ -316,7 +316,7 @@ export function PromocionesAdmin() {
             </div>
 
             <div className="campo">
-              <label htmlFor="pr-img">Banner o afiche de la promoción</label>
+              <label htmlFor="pr-img-archivo">Banner o afiche de la promoción</label>
               <CampoImagen
                 id="pr-img"
                 nombre="imagenUrl"

@@ -37,6 +37,9 @@ interface Props<T extends { id: number; activo: boolean }> {
   aApi?: (valores: Record<string, unknown>) => unknown;
   // Campos especiales que no caben en la lista (por ejemplo, el equipo de un paquete)
   extra?: (valores: Record<string, unknown>, cambiar: (nombre: string, valor: unknown) => void) => ReactNode;
+  textoBotonNuevo?: string;
+  cabeceraExtra?: ReactNode | ((abrirNuevo: () => void) => ReactNode);
+  mensajeVacio?: ReactNode | ((abrirNuevo: () => void) => ReactNode);
 }
 
 // Pantalla genérica de catálogo: tabla + crear + editar + desactivar.
@@ -50,10 +53,15 @@ export function Crud<T extends { id: number; activo: boolean }>({
   aFormulario = (fila) => ({ ...fila }),
   aApi = (valores) => valores,
   extra,
+  textoBotonNuevo,
+  cabeceraExtra,
+  mensajeVacio,
 }: Props<T>) {
   const { datos, cargando, error, recargar } = useDatos<T[]>(`${ruta}?incluirInactivos=true`);
   const [editando, setEditando] = useState<{ id: number | null; valores: Record<string, unknown> } | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+
+  const abrirNuevo = () => setEditando({ id: null, valores: { ...nuevo } });
 
   const cambiar = (nombre: string, valor: unknown) =>
     setEditando((e) => (e ? { ...e, valores: { ...e.valores, [nombre]: valor } } : e));
@@ -89,16 +97,22 @@ export function Crud<T extends { id: number; activo: boolean }>({
         <button
           type="button"
           className="boton boton--accion boton--chico"
-          onClick={() => setEditando({ id: null, valores: { ...nuevo } })}
+          onClick={abrirNuevo}
         >
-          + Nuevo
+          {textoBotonNuevo ?? '+ Nuevo'}
         </button>
       </TituloPanel>
+
+      {typeof cabeceraExtra === 'function' ? cabeceraExtra(abrirNuevo) : cabeceraExtra}
 
       {aviso && <Mensaje tipo="exito">{aviso}</Mensaje>}
       {cargando && <Cargando />}
       {error && <Mensaje tipo="error">{error}</Mensaje>}
-      {datos && datos.length === 0 && <Mensaje>Todavía no hay registros.</Mensaje>}
+      {datos && datos.length === 0 && (
+        typeof mensajeVacio === 'function'
+          ? mensajeVacio(abrirNuevo)
+          : (mensajeVacio ?? <Mensaje>Todavía no hay registros.</Mensaje>)
+      )}
 
       {datos && datos.length > 0 && (
         <div className="tabla-envoltura">
@@ -183,7 +197,7 @@ function CampoFormulario({
   if (campo.tipo === 'imagen') {
     return (
       <div className="campo">
-        <label htmlFor={id}>
+        <label htmlFor={`${id}-archivo`}>
           {campo.etiqueta}
           {campo.requerido && ' *'}
         </label>
