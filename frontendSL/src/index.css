@@ -976,7 +976,9 @@ html[data-contrast='alto-claro'] .insignia-tecnica--pantalla {
 }
 
 .galeria__item img {
+  display: block;
   width: 100%;
+  height: auto;
   transition: transform 0.6s var(--ease);
 }
 

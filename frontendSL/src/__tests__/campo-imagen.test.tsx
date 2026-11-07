@@ -95,4 +95,26 @@ describe('CampoImagen — Subida de Fotos desde el Celular', () => {
       expect(alCambiar).toHaveBeenCalledWith('http://localhost:5238/uploads/imagenes/celular-abc.webp');
     });
   });
+
+  it('muestra el mensaje de error cuando subirImagen rechaza la promesa', async () => {
+    const alCambiar = vi.fn();
+    vi.spyOn(imagenUtils, 'subirImagen').mockRejectedValue(new Error('Safari no pudo leer la imagen'));
+
+    render(
+      <CampoImagen
+        id="test-img-error"
+        nombre="imagenUrl"
+        valor=""
+        alCambiar={alCambiar}
+      />
+    );
+
+    const inputOculto = screen.getByLabelText(/Seleccionar o tomar fotografía/i);
+    const archivoSimulado = new File(['dummy-bytes'], 'corrupta.heic', { type: 'image/heic' });
+
+    fireEvent.change(inputOculto, { target: { files: [archivoSimulado] } });
+
+    expect(await screen.findByText('Safari no pudo leer la imagen')).toBeInTheDocument();
+    expect(alCambiar).not.toHaveBeenCalled();
+  });
 });

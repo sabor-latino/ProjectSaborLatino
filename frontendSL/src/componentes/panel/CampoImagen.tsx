@@ -41,7 +41,7 @@ export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda }: 
         ref={inputRef}
         type="file"
         id={`${id}-archivo`}
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*"
         style={{ display: 'none' }}
         onChange={manejarArchivo}
         aria-label="Seleccionar o tomar fotografía"
