@@ -206,7 +206,9 @@ it('no abre si falla guardar; reintenta con la misma clave y la cambia cuando ca
   const enviar = () => fireEvent.click(screen.getByRole('button', { name: 'Guardar y abrir WhatsApp' }));
   enviar();
   await screen.findByText('No se pudo guardar la solicitud. Intente de nuevo.');
-  expect(screen.getByRole('region', { name: 'No pudimos guardar la solicitud' })).toHaveFocus();
+  await waitFor(() => {
+    expect(screen.getByRole('region', { name: 'No pudimos guardar la solicitud' })).toHaveFocus();
+  });
   enviar();
   await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
   await waitFor(() => expect(screen.getByRole('button', { name: 'Guardar y abrir WhatsApp' })).toBeEnabled());
