@@ -52,17 +52,22 @@ export function FormularioAccion({
   alEnviar,
   children,
   peligro = false,
+  deshabilitado = false,
+  textoBotonDeshabilitado,
 }: {
   textoBoton: string;
   alEnviar: () => Promise<void>;
   children?: ReactNode;
   peligro?: boolean;
+  deshabilitado?: boolean;
+  textoBotonDeshabilitado?: string;
 }) {
   const [enviando, setEnviando] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
 
   const enviar = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (deshabilitado) return;
     setEnviando(true);
     setErrores([]);
     try {
@@ -87,9 +92,9 @@ export function FormularioAccion({
       <button
         type="submit"
         className={`boton boton--chico ${peligro ? 'boton--peligro' : 'boton--accion'}`}
-        disabled={enviando}
+        disabled={enviando || deshabilitado}
       >
-        {enviando ? 'Guardando…' : textoBoton}
+        {enviando ? 'Guardando…' : deshabilitado ? (textoBotonDeshabilitado ?? '📷 Subiendo fotografía…') : textoBoton}
       </button>
     </form>
   );

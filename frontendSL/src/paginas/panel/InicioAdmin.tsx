@@ -85,6 +85,7 @@ function FormularioContenidoInicio({
   alGuardar: () => void;
 }) {
   const [valores, setValores] = useState<ContenidoInicio>(inicial);
+  const [subiendoArchivos, setSubiendoArchivos] = useState(0);
 
   const cambiar = (campo: keyof ContenidoInicio, valor: string) =>
     setValores((prev) => ({
@@ -102,6 +103,7 @@ function FormularioContenidoInicio({
     }));
 
   const guardar = async () => {
+    if (subiendoArchivos > 0) return;
     await api.put('/api/contenido-inicio', {
       ...valores,
       fotoPortadaUrl: valores.fotoPortadaUrl?.trim() || null,
@@ -117,7 +119,12 @@ function FormularioContenidoInicio({
 
   return (
     <div className="caja">
-      <FormularioAccion textoBoton="Guardar cambios de Inicio" alEnviar={guardar}>
+      <FormularioAccion
+        textoBoton="Guardar cambios de Inicio"
+        alEnviar={guardar}
+        deshabilitado={subiendoArchivos > 0}
+        textoBotonDeshabilitado="📷 Subiendo fotografía…"
+      >
         <fieldset className="grupo-campos">
           <legend>Portada Principal — Títulos y Presentación</legend>
           <div className="fila">
@@ -198,6 +205,7 @@ function FormularioContenidoInicio({
                 valor={valores.fotoPortadaUrl || ''}
                 alCambiar={(url) => cambiar('fotoPortadaUrl', url)}
                 ayuda="Opcional. Foto principal en la portada del sitio web."
+                enSubiendo={(s) => setSubiendoArchivos((c) => (s ? c + 1 : Math.max(0, c - 1)))}
               />
             </div>
             <div className="campo">
@@ -208,6 +216,7 @@ function FormularioContenidoInicio({
                 valor={valores.fotoCotizarUrl || ''}
                 alCambiar={(url) => cambiar('fotoCotizarUrl', url)}
                 ayuda="Opcional. Foto de fondo en la sección para solicitar cotización."
+                enSubiendo={(s) => setSubiendoArchivos((c) => (s ? c + 1 : Math.max(0, c - 1)))}
               />
             </div>
           </div>

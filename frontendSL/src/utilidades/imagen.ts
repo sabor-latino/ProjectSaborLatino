@@ -96,31 +96,39 @@ function exportarCanvas(
   calidad = 0.82,
 ): Promise<{ blob: Blob; extension: string }> {
   return new Promise((resolve, reject) => {
-    // 1. Intentar WebP primero
-    canvas.toBlob(
-      (blobWebp) => {
-        if (blobWebp && blobWebp.type === 'image/webp') {
-          resolve({ blob: blobWebp, extension: '.webp' });
-          return;
-        }
+    try {
+      // 1. Intentar WebP primero
+      canvas.toBlob(
+        (blobWebp) => {
+          if (blobWebp && blobWebp.type === 'image/webp' && blobWebp.size > 0) {
+            resolve({ blob: blobWebp, extension: '.webp' });
+            return;
+          }
 
-        // 2. Si Safari devuelve null o devuelve image/png por falta de soporte de codificación WebP,
-        // exportar a JPEG universal de alta compresión.
-        canvas.toBlob(
-          (blobJpeg) => {
-            if (blobJpeg) {
-              resolve({ blob: blobJpeg, extension: '.jpg' });
-            } else {
-              reject(new Error('No se pudo procesar la imagen en Safari ni en el navegador.'));
-            }
-          },
-          'image/jpeg',
-          calidad,
-        );
-      },
-      'image/webp',
-      calidad,
-    );
+          // 2. Si Safari devuelve null o devuelve image/png por falta de soporte de codificación WebP,
+          // exportar a JPEG universal de alta compresión.
+          try {
+            canvas.toBlob(
+              (blobJpeg) => {
+                if (blobJpeg && blobJpeg.size > 0) {
+                  resolve({ blob: blobJpeg, extension: '.jpg' });
+                } else {
+                  reject(new Error('No se pudo procesar la imagen en Safari ni en el navegador.'));
+                }
+              },
+              'image/jpeg',
+              calidad,
+            );
+          } catch (errJpeg) {
+            reject(errJpeg instanceof Error ? errJpeg : new Error('Error al exportar JPEG'));
+          }
+        },
+        'image/webp',
+        calidad,
+      );
+    } catch (errWebp) {
+      reject(errWebp instanceof Error ? errWebp : new Error('Error al exportar WebP'));
+    }
   });
 }
 
@@ -176,11 +184,31 @@ export async function comprimirImagen(
 
 /**
  * Comprime la imagen y la sube al endpoint nativo de la API de Sabor Latino.
+ * Si la compresión en el cliente falla (por ejemplo por limitaciones de memoria de Safari
+ * o formatos no decodificables en canvas), recurre de inmediato a subir el archivo original
+ * para garantizar que la fotografía nunca se pierda ni bloquee al usuario.
  */
 export async function subirImagen(archivo: File): Promise<ResultadoSubida> {
-  const { blob, nombre } = await comprimirImagen(archivo);
+  let blobParaSubir: Blob = archivo;
+  let nombreParaSubir: string = archivo.name;
+
+  try {
+    const comprimido = await comprimirImagen(archivo);
+    blobParaSubir = comprimido.blob;
+    nombreParaSubir = comprimido.nombre;
+  } catch (errorCompresion) {
+    console.warn('La compresión en el cliente falló o fue omitida; subiendo archivo original:', errorCompresion);
+    if (!/\.(jpg|jpeg|png|webp)$/i.test(nombreParaSubir)) {
+      if (archivo.type === 'image/png') {
+        nombreParaSubir = `${nombreParaSubir.replace(/\.[^/.]+$/, '') || 'foto'}.png`;
+      } else {
+        nombreParaSubir = `${nombreParaSubir.replace(/\.[^/.]+$/, '') || 'foto'}.jpg`;
+      }
+    }
+  }
+
   const formData = new FormData();
-  formData.append('archivo', blob, nombre);
+  formData.append('archivo', blobParaSubir, nombreParaSubir);
 
   return await api.postForm<ResultadoSubida>('/api/archivos/subir-imagen', formData);
 }

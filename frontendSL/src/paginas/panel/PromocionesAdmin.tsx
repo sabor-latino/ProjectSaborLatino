@@ -50,6 +50,7 @@ export function PromocionesAdmin() {
   const { datos, cargando, error, recargar } = useDatos<PromocionTemporada[]>('/api/promociones?incluirInactivas=true');
   const paquetes = useDatos<Paquete[]>('/api/paquetes?incluirInactivos=true');
   const [editando, setEditando] = useState<{ id: number | null; valores: FormularioPromocion } | null>(null);
+  const [subiendoArchivos, setSubiendoArchivos] = useState(0);
   const [aviso, setAviso] = useState<string | null>(null);
 
   const listaPromociones = Array.isArray(datos) ? datos : [];
@@ -221,7 +222,12 @@ export function PromocionesAdmin() {
         alCerrar={() => setEditando(null)}
       >
         {editando && (
-          <FormularioAccion textoBoton="Guardar promoción" alEnviar={guardar}>
+          <FormularioAccion
+            textoBoton="Guardar promoción"
+            alEnviar={guardar}
+            deshabilitado={subiendoArchivos > 0}
+            textoBotonDeshabilitado="📷 Subiendo fotografía…"
+          >
             <div className="fila">
               <div className="campo">
                 <label htmlFor="pr-nombre">Nombre (Español) *</label>
@@ -323,6 +329,7 @@ export function PromocionesAdmin() {
                 valor={editando.valores.imagenUrl}
                 alCambiar={(url) => cambiar('imagenUrl', url)}
                 ayuda="Opcional. Se muestra como portada en la promoción."
+                enSubiendo={(s) => setSubiendoArchivos((c) => (s ? c + 1 : Math.max(0, c - 1)))}
               />
             </div>
 

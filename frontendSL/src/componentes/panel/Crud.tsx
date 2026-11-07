@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { api } from '../../api/cliente';
+import { api, ErrorApi } from '../../api/cliente';
 import { useDatos } from '../../hooks/useDatos';
 import { Cargando, Mensaje } from '../Estado';
 import { Dialogo, FormularioAccion, TituloPanel } from './Piezas';
@@ -59,6 +59,7 @@ export function Crud<T extends { id: number; activo: boolean }>({
 }: Props<T>) {
   const { datos, cargando, error, recargar } = useDatos<T[]>(`${ruta}?incluirInactivos=true`);
   const [editando, setEditando] = useState<{ id: number | null; valores: Record<string, unknown> } | null>(null);
+  const [subiendoArchivos, setSubiendoArchivos] = useState(0);
   const [aviso, setAviso] = useState<string | null>(null);
 
   const abrirNuevo = () => setEditando({ id: null, valores: { ...nuevo } });
@@ -67,7 +68,18 @@ export function Crud<T extends { id: number; activo: boolean }>({
     setEditando((e) => (e ? { ...e, valores: { ...e.valores, [nombre]: valor } } : e));
 
   const guardar = async () => {
-    if (!editando) return;
+    if (!editando || subiendoArchivos > 0) return;
+
+    // Validación preventiva en el cliente para campos obligatorios
+    for (const c of campos) {
+      if (c.requerido) {
+        const v = editando.valores[c.nombre];
+        if (v === null || v === undefined || String(v).trim() === '') {
+          throw new ErrorApi(400, [`El campo ${c.etiqueta} es obligatorio.`]);
+        }
+      }
+    }
+
     const cuerpo = aApi(editando.valores);
     if (editando.id === null) {
       await api.post(ruta, cuerpo);
@@ -170,9 +182,20 @@ export function Crud<T extends { id: number; activo: boolean }>({
         alCerrar={() => setEditando(null)}
       >
         {editando && (
-          <FormularioAccion textoBoton="Guardar" alEnviar={guardar}>
+          <FormularioAccion
+            textoBoton="Guardar"
+            alEnviar={guardar}
+            deshabilitado={subiendoArchivos > 0}
+            textoBotonDeshabilitado="📷 Subiendo fotografía…"
+          >
             {campos.map((campo) => (
-              <CampoFormulario key={campo.nombre} campo={campo} valor={editando.valores[campo.nombre]} cambiar={cambiar} />
+              <CampoFormulario
+                key={campo.nombre}
+                campo={campo}
+                valor={editando.valores[campo.nombre]}
+                cambiar={cambiar}
+                enSubiendo={(s) => setSubiendoArchivos((prev) => (s ? prev + 1 : Math.max(0, prev - 1)))}
+              />
             ))}
             {extra?.(editando.valores, cambiar)}
           </FormularioAccion>
@@ -186,10 +209,12 @@ function CampoFormulario({
   campo,
   valor,
   cambiar,
+  enSubiendo,
 }: {
   campo: CampoCrud;
   valor: unknown;
   cambiar: (nombre: string, valor: unknown) => void;
+  enSubiendo?: (subiendo: boolean) => void;
 }) {
   const id = `campo-${campo.nombre}`;
   const texto = valor === null || valor === undefined ? '' : String(valor);
@@ -208,6 +233,7 @@ function CampoFormulario({
           alCambiar={(url) => cambiar(campo.nombre, url)}
           requerido={campo.requerido}
           ayuda={campo.ayuda}
+          enSubiendo={enSubiendo}
         />
       </div>
     );

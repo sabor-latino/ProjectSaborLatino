@@ -8,9 +8,10 @@ interface CampoImagenProps {
   alCambiar: (url: string) => void;
   requerido?: boolean;
   ayuda?: string;
+  enSubiendo?: (subiendo: boolean) => void;
 }
 
-export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda }: CampoImagenProps) {
+export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda, enSubiendo }: CampoImagenProps) {
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modoUrl, setModoUrl] = useState(false);
@@ -22,6 +23,7 @@ export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda }: 
 
     setError(null);
     setSubiendo(true);
+    enSubiendo?.(true);
     try {
       const res = await subirImagen(archivo);
       alCambiar(res.url);
@@ -29,6 +31,7 @@ export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda }: 
       setError(err instanceof Error ? err.message : 'No se pudo subir la imagen.');
     } finally {
       setSubiendo(false);
+      enSubiendo?.(false);
       if (inputRef.current) {
         inputRef.current.value = '';
       }
@@ -41,7 +44,7 @@ export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda }: 
         ref={inputRef}
         type="file"
         id={`${id}-archivo`}
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*"
+        accept="image/jpeg,image/png,image/webp"
         style={{ display: 'none' }}
         onChange={manejarArchivo}
         aria-label="Seleccionar o tomar fotografía"
@@ -173,6 +176,7 @@ export function CampoImagen({ id, nombre, valor, alCambiar, requerido, ayuda }: 
 
       {error && (
         <p className="campo__error" role="alert">
+          <span aria-hidden="true">⚠️ </span>
           {error}
         </p>
       )}
